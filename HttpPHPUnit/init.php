@@ -27,6 +27,7 @@ class HttpPHPUnit
 
 	public function coverage($appDir, $coverageDir)
 	{
+		if (isset($_GET['dir'])) return $this;
 		PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($appDir);
 		$this->coverage = $coverageDir;
 		return $this->arg('--coverage-html ' . $coverageDir);
@@ -45,7 +46,7 @@ class HttpPHPUnit
 		$dir = realpath($dir);
 		$arg[] = $dir . (isset($_GET['dir']) ? '/' . $_GET['dir'] : '');
 
-		if ($this->coverage AND !isset($_GET['dir']))
+		if ($this->coverage AND is_dir($this->coverage))
 		{
 			foreach (Finder::findFiles('*')->from($this->coverage) as $file)
 			{
