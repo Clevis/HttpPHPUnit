@@ -48,7 +48,7 @@ class HttpPHPUnit
 
 		if ($this->coverage AND is_dir($this->coverage))
 		{
-			foreach (Finder::findFiles('*')->from($this->coverage) as $file)
+			foreach (Finder::findFiles('*.html')->from($this->coverage) as $file)
 			{
 				unlink($file);
 			}
