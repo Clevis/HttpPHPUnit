@@ -8,6 +8,8 @@ class HttpPHPUnit
 
 	private $testDir;
 
+	public $debug = NULL;
+
 	public function __construct($phpUnitDir = NULL)
 	{
 		if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../PHPUnit';
@@ -30,7 +32,9 @@ class HttpPHPUnit
 		{
 			$this->arg('--filter ' . substr($this->testDir, $pos+2));
 			$this->testDir = substr($this->testDir, 0, $pos);
+			if ($this->debug === NULL) $this->debug = true;
 		}
+		if ($this->debug === NULL) $this->debug = false;
 	}
 
 	public function coverage($appDir, $coverageDir)
@@ -66,7 +70,7 @@ class HttpPHPUnit
 
 		$command = new HttpPHPUnit_TextUI_Command;
 		$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
-		$printer->debug = (bool) $this->testDir;
+		$printer->debug = (bool) $this->debug;
 		$printer->dir = $dir . DIRECTORY_SEPARATOR;
 		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
 		if ($this->testDir) echo "<h1><a href='?'>back</a></h1>";
