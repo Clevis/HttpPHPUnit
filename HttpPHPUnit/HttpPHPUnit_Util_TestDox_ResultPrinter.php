@@ -88,4 +88,16 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		if ($this->skipped) $this->write("Skipped: {$this->skipped}<br>");
 	}
 
+	public function startTest(PHPUnit_Framework_Test $test)
+	{
+		parent::startTest($test);
+		if (Debug::isEnabled()) restore_error_handler();
+	}
+
+	public function endTest(PHPUnit_Framework_Test $test, $time)
+	{
+		if (Debug::isEnabled()) set_error_handler(array('Debug', '_errorHandler'));
+		parent::startTest($test, $time);
+	}
+
 }
