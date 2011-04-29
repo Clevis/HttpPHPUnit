@@ -28,6 +28,8 @@ class HttpPHPUnit
 	public function coverage($appDir, $coverageDir)
 	{
 		if (isset($_GET['dir'])) return $this;
+		@mkdir ($coverageDir);
+		if (!is_writable($coverageDir)) throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
 		PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($appDir);
 		$this->coverage = $coverageDir;
 		return $this->arg('--coverage-html ' . $coverageDir);
