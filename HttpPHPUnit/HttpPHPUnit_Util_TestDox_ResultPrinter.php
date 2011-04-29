@@ -76,9 +76,10 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 
 	protected function endRun()
 	{
+		parent::endRun();
 		if (!$this->failed)
 		{
-			$this->write('<h1>OK</h1>');
+			$this->write("<h1>OK $this->successful</h1>");
 		}
 		else
 		{
@@ -97,6 +98,10 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
 		if (Debug::isEnabled()) set_error_handler(array('Debug', '_errorHandler'));
+		if ($this->testStatus == PHPUnit_Runner_BaseTestRunner::STATUS_PASSED)
+		{
+			$this->successful++;
+		}
 		parent::startTest($test, $time);
 	}
 
