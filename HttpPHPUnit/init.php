@@ -6,6 +6,8 @@ class HttpPHPUnit
 
 	private $arg = array();
 
+	private $testDir;
+
 	public function __construct($phpUnitDir = NULL)
 	{
 		if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../PHPUnit';
@@ -23,11 +25,17 @@ class HttpPHPUnit
 		require_once __DIR__ . '/HttpPHPUnit_TextUI_Command.php';
 		require_once __DIR__ . '/HttpPHPUnit_Util_TestDox_ResultPrinter.php';
 
+		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
+		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
+		{
+			$this->arg('--filter ' . substr($this->testDir, $pos+2));
+			$this->testDir = substr($this->testDir, 0, $pos);
+		}
 	}
 
 	public function coverage($appDir, $coverageDir)
 	{
-		if (isset($_GET['dir'])) return $this;
+		if ($this->testDir) return $this;
 		@mkdir ($coverageDir);
 		if (!is_writable($coverageDir)) throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
 		PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($appDir);
@@ -46,7 +54,7 @@ class HttpPHPUnit
 		$this->arg($arg);
 		$arg = $this->arg;
 		$dir = realpath($dir);
-		$arg[] = $dir . (isset($_GET['dir']) ? '/' . $_GET['dir'] : '');
+		$arg[] = $dir . ($this->testDir ? '/' . $this->testDir : '');
 
 		if ($this->coverage AND is_dir($this->coverage))
 		{
@@ -58,10 +66,10 @@ class HttpPHPUnit
 
 		$command = new HttpPHPUnit_TextUI_Command;
 		$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
-		$printer->debug = isset($_GET['dir']);
+		$printer->debug = (bool) $this->testDir;
 		$printer->dir = $dir . DIRECTORY_SEPARATOR;
 		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
-		if (isset($_GET['dir'])) echo "<h1><a href='?'>back</a></h1>";
+		if ($this->testDir) echo "<h1><a href='?'>back</a></h1>";
 		$command->run($arg, $printer);
 		$printer->render();
 		if ($this->coverage)

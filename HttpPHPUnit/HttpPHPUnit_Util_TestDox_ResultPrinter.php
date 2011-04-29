@@ -65,7 +65,8 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		if ($this->dir) $dir = preg_replace('#^' . preg_quote($this->dir, '#') . '#si', '', $dir);
 		$class = preg_replace('#^Tests\\\\(.*)Test$#si', '$1',get_class($test));
 		$method = lcfirst($this->currentTestMethodPrettified);
-		$this->write("<h2>{$state} <a href='?dir={$dir}'>{$class}::{$method}</a></h2>");
+		$test = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($test->getName(false));
+		$this->write("<h2>{$state} <a href='?test=$test'>{$class}::{$method}</a></h2>");
 		$this->write(
 			$state === 'Error' ?
 			'<p><pre>' . htmlspecialchars($e) . '</pre></p>' :
