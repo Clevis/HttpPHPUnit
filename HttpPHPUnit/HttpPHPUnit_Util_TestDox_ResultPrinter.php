@@ -1,5 +1,7 @@
 <?php
 
+use Nette\Diagnostics\Debugger as Debug;
+
 class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 {
 	private $file;
@@ -97,7 +99,22 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
-		if (Debug::isEnabled()) set_error_handler(array('Debug', '_errorHandler'));
+		if (Debug::isEnabled())
+		{
+			if (class_exists('Debug', false))
+			{
+				$class = 'Debug';
+			}
+			else if (class_exists('Nette\Debug', false))
+			{
+				$class = 'Nette\Debug';
+			}
+			else
+			{
+				$class = 'Nette\Diagnostics\Debugger';
+			}
+			set_error_handler(array($class, '_errorHandler'));
+		}
 		if ($this->testStatus == PHPUnit_Runner_BaseTestRunner::STATUS_PASSED)
 		{
 			$this->successful++;

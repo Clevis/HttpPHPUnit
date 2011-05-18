@@ -1,5 +1,10 @@
 <?php
 
+use Nette\Environment;
+use Nette\Diagnostics\Debugger as Debug;
+use Nette\DirectoryNotFoundException;
+use Nette\Utils\Finder;
+
 class HttpPHPUnit
 {
 	private $coverage;
@@ -19,7 +24,14 @@ class HttpPHPUnit
 		ini_set('memory_limit', '1G');
 		if (extension_loaded('xdebug')) xdebug_disable();
 
-		Environment::setMode('console');
+		if (method_exists('Environment', 'setMode') OR method_exists('Nette\Environment', 'setMode'))
+		{
+			Environment::setMode('console');
+		}
+		else
+		{
+			Environment::getContext()->params['consoleMode'] = true;
+		}
 
 		set_include_path($phpUnitDir);
 
