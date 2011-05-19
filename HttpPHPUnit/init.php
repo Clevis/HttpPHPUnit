@@ -13,6 +13,8 @@ class HttpPHPUnit
 
 	private $testDir;
 
+	private $method;
+
 	public $debug = NULL;
 
 	public function __construct($phpUnitDir = NULL)
@@ -42,7 +44,8 @@ class HttpPHPUnit
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
 		{
-			$this->arg('--filter ' . substr($this->testDir, $pos+2));
+			$this->method = substr($this->testDir, $pos+2);
+			$this->arg('--filter ' . escapeshellarg('(^|::)' . preg_quote($this->method) . '$'));
 			$this->testDir = substr($this->testDir, 0, $pos);
 			if ($this->debug === NULL) $this->debug = true;
 		}
