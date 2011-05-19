@@ -14,6 +14,9 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 
 	protected $autoFlush = true;
 
+	/** @var mixed */
+	private $netteDebugHandler;
+
 	public function __construct()
 	{
 		$this->file = tempnam(sys_get_temp_dir(), 'test');
@@ -94,26 +97,19 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	public function startTest(PHPUnit_Framework_Test $test)
 	{
 		parent::startTest($test);
-		if (Debug::isEnabled()) restore_error_handler();
+		if (Debug::isEnabled())
+		{
+			// ziskat posledni registrovany handler a zrusi ho
+			$this->netteDebugHandler = set_error_handler(create_function('', ''));
+			restore_error_handler(); restore_error_handler();
+		}
 	}
 
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
 		if (Debug::isEnabled())
 		{
-			if (class_exists('Debug', false))
-			{
-				$class = 'Debug';
-			}
-			else if (class_exists('Nette\Debug', false))
-			{
-				$class = 'Nette\Debug';
-			}
-			else
-			{
-				$class = 'Nette\Diagnostics\Debugger';
-			}
-			set_error_handler(array($class, '_errorHandler'));
+			set_error_handler($this->netteDebugHandler);
 		}
 		if ($this->testStatus == PHPUnit_Runner_BaseTestRunner::STATUS_PASSED)
 		{
