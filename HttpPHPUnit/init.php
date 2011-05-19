@@ -88,7 +88,13 @@ class HttpPHPUnit
 		$printer->debug = (bool) $this->debug;
 		$printer->dir = $dir . DIRECTORY_SEPARATOR;
 		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
-		if ($this->testDir) echo "<h1><a href='?'>back</a></h1>";
+		if ($this->testDir)
+		{
+			echo '<h1><a href="?">back to all</a><br>';
+			echo $this->testDir;
+			if ($this->method) echo ' :: ' . $this->method;
+			echo '</h1>';
+		}
 		$command->run($arg, $printer);
 		$printer->render();
 		if ($this->coverage)
