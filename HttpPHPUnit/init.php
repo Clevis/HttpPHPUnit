@@ -66,6 +66,7 @@ class HttpPHPUnit
 		require_once 'PHPUnit/Autoload.php';
 		require_once __DIR__ . '/HttpPHPUnit_TextUI_Command.php';
 		require_once __DIR__ . '/HttpPHPUnit_Util_TestDox_ResultPrinter.php';
+		require_once __DIR__ . '/StructureRenderer/StructureRenderer.php';
 
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
@@ -138,6 +139,20 @@ class HttpPHPUnit
 			echo "<a href='$d'>coverage</a>";
 		};
 		return $this->arg('--coverage-html ' . $coverageDir);
+	}
+
+	/**
+	 * Enable display structure
+	 * @see StructureRenderer
+	 * @return HttpPHPUnit
+	 */
+	public function structure()
+	{
+		$open = $this->testDir . '::' . $this->method;
+		$this->onBefore['structure'] = function ($foo, $dir) use ($open) {
+			$structure = new StructureRenderer($dir, $open);
+			$structure->render();
+		};
 	}
 
 	/**
