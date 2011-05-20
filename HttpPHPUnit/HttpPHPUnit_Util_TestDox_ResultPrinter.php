@@ -2,15 +2,25 @@
 
 use Nette\Diagnostics\Debugger as Debug;
 
+/**
+ * @author Petr Prochazka
+ */
 class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 {
-	private $file;
+	const FAILURE = 'Failure';
+	const ERROR = 'Error';
+	const INCOMPLETE = 'Incomplete';
 
+	/** @var bool true display Nette\Diagnostics\Debugger */
 	public $debug = false;
 
+	/** @var string dir to tests */
 	public $dir;
 
-	protected $printsHTML = TRUE;
+	/** @var string temp file */
+	private $file;
+
+	protected $printsHTML = true;
 
 	protected $autoFlush = true;
 
@@ -23,12 +33,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		parent::__construct(fopen($this->file, 'w'));
 	}
 
-	public function flush()
-	{
-		parent::flush();
-		$this->incrementalFlush();
-	}
-
+	/** Po kazdem testu vypise */
 	public function incrementalFlush()
 	{
 		echo file_get_contents($this->file);
@@ -37,34 +42,48 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		flush();
 	}
 
+	/** Za vsema testama */
+	public function flush()
+	{
+		parent::flush();
+		$this->incrementalFlush();
+	}
+
+	/** Dorenderuje zbytek */
 	public function render()
 	{
 		$this->incrementalFlush();
 		@unlink($this->file);
 	}
 
+	/** Assert error */
 	public function addFailure(PHPUnit_Framework_Test $test, PHPUnit_Framework_AssertionFailedError $e, $time)
 	{
-		if ($this->debug) Debug::toStringException($e);
-		$this->ass($test, $e, 'Failure');
+		$this->error($test, $e, self::FAILURE);
 		parent::addFailure($test, $e, $time);
 	}
 
+	/** Other error */
 	public function addError(PHPUnit_Framework_Test $test, Exception $e, $time)
 	{
-		if ($this->debug) Debug::toStringException($e);
-		$this->ass($test, $e, 'Error');
+		$this->error($test, $e, self::ERROR);
 		parent::addError($test, $e, $time);
 	}
 
+	/** @see PHPUnit_Framework_Assert::markTestIncomplete() */
 	public function addIncompleteTest(PHPUnit_Framework_Test $test, Exception $e, $time)
 	{
-		$this->ass($test, $e, 'Incomplete');
+		$this->error($test, $e, self::INCOMPLETE);
 		parent::addIncompleteTest($test, $e, $time);
 	}
 
-	protected function ass(PHPUnit_Framework_Test $test, Exception $e, $state)
+	/** Vypise chybu */
+	protected function error(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
+		if ($this->debug AND $state !== self::INCOMPLETE)
+		{
+			Debug::toStringException($e);
+		}
 		$r = new ReflectionClass($test);
 		$dir = $r->getFileName();
 		if ($this->dir) $dir = preg_replace('#^' . preg_quote($this->dir, '#') . '#si', '', $dir);
@@ -73,18 +92,19 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		$test = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
 		$this->write("<h2>{$state} <a href='?test=$test'>{$class} :: {$method}</a></h2>");
 		$this->write(
-			$state === 'Error' ?
+			$state === self::ERROR ?
 			'<p><pre>' . htmlspecialchars($e) . '</pre></p>' :
 			'<p>' . htmlspecialchars($e->getMessage()) . '</p>'
 		);
 	}
 
+	/** Vysledek celeho testu */
 	protected function endRun()
 	{
 		parent::endRun();
 		if (!$this->failed)
 		{
-			$this->write("<h1>OK $this->successful</h1>");
+			$this->write("<h1>OK {$this->successful}</h1>");
 		}
 		else
 		{
@@ -94,6 +114,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		if ($this->skipped) $this->write("Skipped: {$this->skipped}<br>");
 	}
 
+	/** Odregistruje Debug aby chyby chytal PHPUnit */
 	public function startTest(PHPUnit_Framework_Test $test)
 	{
 		parent::startTest($test);
@@ -105,6 +126,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		}
 	}
 
+	/** Zaregistruje zpet Debug */
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
 		if (Debug::isEnabled())

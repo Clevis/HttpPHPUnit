@@ -5,22 +5,48 @@ use Nette\Diagnostics\Debugger as Debug;
 use Nette\DirectoryNotFoundException;
 use Nette\Utils\Finder;
 
+/**
+ * <pre>
+ * 	require_once __DIR__ . '/libs/Nette/loader.php';
+ * 	require_once __DIR__ . '/libs/HttpPHPUnit/init.php';
+ *
+ * 	$http = new HttpPHPUnit;
+ * 	$http->structure();
+ * 	$http->coverage(__DIR__ . '/../app', __DIR__ . '/report');
+ * 	$http->run(__DIR__ . '/tests');
+ *
+ * </pre>
+ * @author Petr Prochazka
+ */
 class HttpPHPUnit
 {
-	private $coverage;
 
+	/** @var array phpunit params */
 	private $arg = array();
 
+	/** @var string */
 	private $testDir;
 
-	private $method;
+	/** @var string|NULL */
+	private $method = NULL;
 
+	/** @var bool|NULL null mean autodetect */
 	public $debug = NULL;
 
+	/** @var array of callback before run test */
+	private $onBefore = array();
+
+	/** @var array of callback after run test */
+	private $onAfter = array();
+
+	/**
+	 * @param string path to PHPUnit
+	 * @throws DirectoryNotFoundException
+	 */
 	public function __construct($phpUnitDir = NULL)
 	{
 		if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../PHPUnit';
-		if (!is_dir($phpUnitDir)) throw new InvalidStateException();
+		if (!is_dir($phpUnitDir)) throw new DirectoryNotFoundException($phpUnitDir);
 
 		set_time_limit(0);
 		ini_set('memory_limit', '1G');
@@ -52,59 +78,102 @@ class HttpPHPUnit
 		if ($this->debug === NULL) $this->debug = false;
 	}
 
+	/**
+	 * RUN FOREST!!!
+	 * @param string dir to tests
+	 * @param string params {@see self::arg()}
+	 * @throws DirectoryNotFoundException
+	 */
+	public function run($dir, $arg = '--no-globals-backup --strict')
+	{
+		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
+		if ($this->testDir)
+		{
+			echo '<h2>';
+			echo $this->testDir;
+			if ($this->method) echo ' :: ' . $this->method;
+			echo '<br><a href="?">back to all</a>';
+			echo '</h2>';
+		}
+
+		$this->arg($arg);
+		$arg = $this->prepareArgs($dir);
+		foreach ($this->onBefore as $cb) $cb($this, $dir);
+
+		$command = new HttpPHPUnit_TextUI_Command;
+		$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
+		$printer->debug = (bool) $this->debug;
+		$printer->dir = $dir . DIRECTORY_SEPARATOR;
+		echo '<pre>';
+		$command->run($arg, $printer);
+		$printer->render();
+		echo '</pre>';
+		foreach ($this->onAfter as $cb) $cb();
+	}
+
+	/**
+	 * Enable coverage
+	 * @param string app dir
+	 * @param string report dir
+	 * @throws DirectoryNotFoundException
+	 * @return HttpPHPUnit
+	 */
 	public function coverage($appDir, $coverageDir)
 	{
 		if ($this->testDir) return $this;
 		@mkdir ($coverageDir);
-		if (!is_writable($coverageDir)) throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
+		if (!is_writable($coverageDir))
+		{
+			throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
+		}
 		PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($appDir);
-		$this->coverage = $coverageDir;
+		$this->onBefore['coverage'] = function () use ($coverageDir) {
+			foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
+			{
+				unlink($file);
+			}
+		};
+		$this->onAfter['coverage'] = function () use ($coverageDir) {
+			$d = str_replace(DIRECTORY_SEPARATOR, '/', HttpPHPUnit::dirDiff(dirname($_SERVER['SCRIPT_FILENAME']), $coverageDir));
+			echo "<a href='$d'>coverage</a>";
+		};
 		return $this->arg('--coverage-html ' . $coverageDir);
 	}
 
+	/**
+	 * add phpunit param
+	 * @param string
+	 * @return HttpPHPUnit
+	 */
 	public function arg($arg)
 	{
 		$this->arg = array_merge($this->arg, explode(' ', trim($arg)));
 		return $this;
 	}
 
-	public function run($dir, $arg = '--no-globals-backup --strict')
+	/**
+	 * @param string dir to tests
+	 * @return array
+	 */
+	private function prepareArgs(& $dir)
 	{
-		$this->arg($arg);
 		$arg = $this->arg;
+		if (!is_dir($dir))
+		{
+			throw new DirectoryNotFoundException($dir);
+		}
 		$dir = realpath($dir);
 		$arg[] = $dir . ($this->testDir ? '/' . $this->testDir : '');
-
-		if ($this->coverage AND is_dir($this->coverage))
-		{
-			foreach (Finder::findFiles('*.html')->from($this->coverage) as $file)
-			{
-				unlink($file);
-			}
-		}
-
-		$command = new HttpPHPUnit_TextUI_Command;
-		$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
-		$printer->debug = (bool) $this->debug;
-		$printer->dir = $dir . DIRECTORY_SEPARATOR;
-		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
-		if ($this->testDir)
-		{
-			echo '<h1><a href="?">back to all</a><br>';
-			echo $this->testDir;
-			if ($this->method) echo ' :: ' . $this->method;
-			echo '</h1>';
-		}
-		$command->run($arg, $printer);
-		$printer->render();
-		if ($this->coverage)
-		{
-			$d = str_replace(DIRECTORY_SEPARATOR, '/', $this->dirDiff(dirname($_SERVER['SCRIPT_FILENAME']), $this->coverage));
-			echo "<a href='$d'>coverage</a>";
-		}
+		return $arg;
 	}
 
-	private function dirDiff($current, $wish)
+	/**
+	 * Return relative path between two directory
+	 * @param string /foo/bar/aaa/bbb
+	 * @param string /foo/bar/ccc/ddd/eee
+	 * @return string ../../ccc/ddd/eee
+	 */
+	public static function dirDiff($current, $wish)
 	{
 		$dir1 = explode(DIRECTORY_SEPARATOR, realpath($current));
 		$dir2 = explode(DIRECTORY_SEPARATOR, realpath($wish));
