@@ -112,6 +112,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		}
 		if ($this->incomplete) $this->write("Incomplete: {$this->incomplete}<br>");
 		if ($this->skipped) $this->write("Skipped: {$this->skipped}<br>");
+		if ($this->failed) $this->write("Completed: {$this->successful}<br>");
 	}
 
 	/** Odregistruje Debug aby chyby chytal PHPUnit */
