@@ -86,11 +86,17 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		}
 		$r = new ReflectionClass($test);
 		$dir = $r->getFileName();
-		if ($this->dir) $dir = preg_replace('#^' . preg_quote($this->dir, '#') . '#si', '', $dir);
 		$class = preg_replace('#_?Test$#si', '', get_class($test));
 		$method = $test->getName(false);
-		$test = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
-		$this->write("<h2>{$state} <a href='?test=$test'>{$class} :: {$method}</a></h2>");
+		$filter = NULL;
+		if ($this->dir AND strncasecmp($dir, $this->dir, strlen($this->dir)) === 0)
+		{
+			$dir = substr($dir, strlen($this->dir));
+			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
+		}
+		$this->write("<h2>{$state} ");
+		$this->write($filter ? "<a href='?test=$filter'>{$class} :: {$method}</a>" : "{$class} :: {$method}");
+		$this->write('</h2>');
 		$this->write(
 			$state === self::ERROR ?
 			'<p><pre>' . htmlspecialchars($e) . '</pre></p>' :
