@@ -117,7 +117,7 @@ class HttpPHPUnit
 	 * @param string app dir
 	 * @param string report dir
 	 * @throws DirectoryNotFoundException
-	 * @return HttpPHPUnit
+	 * @return PHP_CodeCoverage
 	 */
 	public function coverage($appDir, $coverageDir)
 	{
@@ -127,7 +127,10 @@ class HttpPHPUnit
 		{
 			throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
 		}
-		PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist($appDir);
+		require_once 'PHP/CodeCoverage.php';
+		$coverage = PHP_CodeCoverage::getInstance();
+		$coverage->filter()->addDirectoryToWhitelist($appDir);
+		$coverage->setProcessUncoveredFilesFromWhitelist(false);
 		$this->onBefore['coverage'] = function () use ($coverageDir) {
 			foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
 			{
@@ -138,7 +141,8 @@ class HttpPHPUnit
 			$d = str_replace(DIRECTORY_SEPARATOR, '/', HttpPHPUnit::dirDiff(dirname($_SERVER['SCRIPT_FILENAME']), $coverageDir));
 			echo "<a href='$d'>coverage</a>";
 		};
-		return $this->arg('--coverage-html ' . $coverageDir);
+		$this->arg('--coverage-html ' . $coverageDir);
+		return $coverage;
 	}
 
 	/**
