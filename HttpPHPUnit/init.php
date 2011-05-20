@@ -127,6 +127,11 @@ class HttpPHPUnit
 		{
 			throw new DirectoryNotFoundException("Report directory is not exist or writable $coverageDir");
 		}
+		if (!is_dir($appDir))
+		{
+			throw new DirectoryNotFoundException($appDir);
+		}
+		$appDir = realpath($appDir);
 		require_once 'PHP/CodeCoverage.php';
 		$coverage = PHP_CodeCoverage::getInstance();
 		$coverage->filter()->addDirectoryToWhitelist($appDir);
