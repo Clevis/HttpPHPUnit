@@ -11,6 +11,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	const FAILURE = 'Failure';
 	const ERROR = 'Error';
 	const INCOMPLETE = 'Incomplete';
+	const SKIPPED = 'Skipped';
 
 	/** @var bool true display Nette\Diagnostics\Debugger */
 	public $debug = false;
@@ -30,6 +31,9 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 
 	/** @var OpenInEditor */
 	private $editor;
+
+	/** @var array */
+	private $endInfo = array(self::INCOMPLETE => array(), self::SKIPPED => array());
 
 	public function __construct()
 	{
@@ -78,14 +82,20 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** @see PHPUnit_Framework_Assert::markTestIncomplete() */
 	public function addIncompleteTest(PHPUnit_Framework_Test $test, Exception $e, $time)
 	{
-		$this->error($test, $e, self::INCOMPLETE);
+		$this->endInfo[self::INCOMPLETE][] = array($test, $e);
 		parent::addIncompleteTest($test, $e, $time);
+	}
+
+	public function addSkippedTest(PHPUnit_Framework_Test $test, Exception $e, $time)
+	{
+		$this->endInfo[self::SKIPPED][] = array($test, $e);
+		parent::addSkippedTest($test, $e, $time);
 	}
 
 	/** Vypise chybu */
 	protected function error(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
-		if ($this->debug AND $state !== self::INCOMPLETE)
+		if ($this->debug)
 		{
 			Debug::toStringException($e);
 		}
@@ -111,8 +121,24 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			$this->write("<h1>FAILURES! {$this->failed}</h1>");
 		}
-		if ($this->incomplete) $this->write("Incomplete: {$this->incomplete}<br>");
-		if ($this->skipped) $this->write("Skipped: {$this->skipped}<br>");
+		foreach (array(
+			array(self::INCOMPLETE, $this->incomplete),
+			array(self::SKIPPED, $this->skipped),
+		) as $tmp)
+		{
+			list($state, $count) = $tmp;
+			if ($count)
+			{
+				$this->write("{$state}: {$count}<br><small>");
+				foreach ($this->endInfo[$state] as $tmp)
+				{
+					list($test, $e) = $tmp;
+					$this->renderInfo($test, $e);
+					$this->write(" " . htmlspecialchars($e->getMessage()) . "\n");
+				}
+				$this->write("</small><br><br>");
+			}
+		}
 		if ($this->failed) $this->write("Completed: {$this->successful}<br>");
 	}
 
