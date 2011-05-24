@@ -21,6 +21,9 @@ use Nette\Utils\Finder;
 class HttpPHPUnit
 {
 
+	/** @var bool|NULL null mean autodetect */
+	public $debug = NULL;
+
 	/** @var array phpunit params */
 	private $arg = array();
 
@@ -29,9 +32,6 @@ class HttpPHPUnit
 
 	/** @var string|NULL */
 	private $method = NULL;
-
-	/** @var bool|NULL null mean autodetect */
-	public $debug = NULL;
 
 	/** @var array of callback before run test */
 	private $onBefore = array();
