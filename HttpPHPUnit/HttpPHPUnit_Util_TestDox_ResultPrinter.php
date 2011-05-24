@@ -105,7 +105,42 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		$message = $e->getMessage();
 		if (!$message) $message = '(no message)';
 		if ($state === self::ERROR) $message = get_class($e) . ': ' . $message;
-		$this->write(Html::el('p', $message));
+		if (strlen($message) > 400 OR substr_count($message, "\n") > 4)
+		{
+			static $id = 0;
+			$id++;
+			$short = strtok(substr($message, 0, 400), "\n");
+			for ($i=3; $i--;) $short .= "\n" . strtok("\n");
+			$this->write(
+				Html::el('p', $short)
+					->id("message-short-$id")
+			);
+			$this->write(
+				Html::el('a', "\xE2\x80\xA6full message\xE2\x80\xA6")
+					->id("message-link-$id")
+					->href('#')
+					->onclick("
+						document.getElementById('message-short-$id').style.display = 'none';
+						document.getElementById('message-full-$id').style.display = 'block';
+						this.style.display = 'none';
+						return false;
+					")
+			);
+			$this->write(
+				Html::el('p', $message)
+					->id("message-full-$id")
+					->style('display: none; cursor: pointer;')
+					->onclick("
+						this.style.display = 'none';
+						document.getElementById('message-short-$id').style.display = 'block';
+						document.getElementById('message-link-$id').style.display = 'block';
+					")
+			);
+		}
+		else
+		{
+			$this->write(Html::el('p', $message));
+		}
 	}
 
 	/** Vysledek celeho testu */
