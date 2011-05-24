@@ -121,7 +121,9 @@ class HttpPHPUnit
 	 */
 	public function coverage($appDir, $coverageDir)
 	{
-		if ($this->testDir) return $this;
+		require_once 'PHP/CodeCoverage.php';
+		$coverage = PHP_CodeCoverage::getInstance();
+		if ($this->testDir) return $coverage;
 		@mkdir ($coverageDir);
 		if (!is_writable($coverageDir))
 		{
@@ -132,8 +134,6 @@ class HttpPHPUnit
 			throw new DirectoryNotFoundException($appDir);
 		}
 		$appDir = realpath($appDir);
-		require_once 'PHP/CodeCoverage.php';
-		$coverage = PHP_CodeCoverage::getInstance();
 		$coverage->filter()->addDirectoryToWhitelist($appDir);
 		$coverage->setProcessUncoveredFilesFromWhitelist(false);
 		$this->onBefore['coverage'] = function () use ($coverageDir) {
