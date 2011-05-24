@@ -84,18 +84,8 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			Debug::toStringException($e);
 		}
-		$r = new ReflectionClass($test);
-		$dir = $r->getFileName();
-		$class = preg_replace('#_?Test$#si', '', get_class($test));
-		$method = $test->getName(false);
-		$filter = NULL;
-		if ($this->dir AND strncasecmp($dir, $this->dir, strlen($this->dir)) === 0)
-		{
-			$dir = substr($dir, strlen($this->dir));
-			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
-		}
 		$this->write("<h2>{$state} ");
-		$this->write($filter ? "<a href='?test=$filter'>{$class} :: {$method}</a>" : "{$class} :: {$method}");
+		$this->renderInfo($test, $e);
 		$this->write('</h2>');
 		$this->write(
 			$state === self::ERROR ?
@@ -145,6 +135,41 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			$this->successful++;
 		}
 		parent::startTest($test, $time);
+	}
+
+	/**
+	 * @param PHPUnit_Framework_Test
+	 * @return array
+	 * array(
+	 * 		'FooBarTest',
+	 * 		'testFooBar',
+	 *		'/tests/Foo/FooBarTest.php',
+	 * 		'Foo/FooBarTest.php::testFooBar',
+	 * )
+	 */
+	private function getTestInfo(PHPUnit_Framework_Test $test)
+	{
+		$r = new ReflectionClass($test);
+		$path = $r->getFileName();
+		$class = preg_replace('#_?Test$#si', '', get_class($test));
+		$method = $test->getName(false);
+		$filter = NULL;
+		if ($this->dir AND strncasecmp($path, $this->dir, strlen($this->dir)) === 0)
+		{
+			$dir = substr($path, strlen($this->dir));
+			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
+		}
+		return array($class, $method, $path, $filter);
+	}
+
+	/**
+	 * @param PHPUnit_Framework_Test
+	 * @param Exception
+	 */
+	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e)
+	{
+		list($class, $method, $path, $filter) = $this->getTestInfo($test);
+		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
 	}
 
 }
