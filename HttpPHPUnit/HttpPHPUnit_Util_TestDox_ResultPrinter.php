@@ -1,6 +1,7 @@
 <?php
 
 use Nette\Diagnostics\Debugger as Debug;
+use Nette\Utils\Html;
 
 /**
  * @author Petr Prochazka
@@ -27,10 +28,14 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** @var mixed */
 	private $netteDebugHandler;
 
+	/** @var OpenInEditor */
+	private $editor;
+
 	public function __construct()
 	{
 		$this->file = tempnam(sys_get_temp_dir(), 'test');
 		parent::__construct(fopen($this->file, 'w'));
+		$this->editor = new OpenInEditor;
 	}
 
 	/** Po kazdem testu vypise */
@@ -170,6 +175,33 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
 		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
+		if ($editor = $this->getEditorLink($path, $e))
+		{
+			$editor = Html::el('a', '(open in editor)')->href($editor);
+			$this->write(" <small><small>$editor</small></small>");
+		}
+	}
+
+	/**
+	 * @see OpenInEditor
+	 * @param string
+	 * @param Exception
+	 * @return string|NULL
+	 */
+	private function getEditorLink($path, Exception $e)
+	{
+		if ($e->getFile() === $path)
+		{
+			return $this->editor->link($path, $e->getLine());
+		}
+		foreach ($e->getTrace() as $trace)
+		{
+			if (isset($trace['file']) AND $trace['file'] === $path)
+			{
+				return $this->editor->link($path, $trace['line']);
+			}
+		}
+		return $this->editor->link($path, 1);
 	}
 
 }

@@ -2,10 +2,23 @@
  * @author Petr Prochazka
  * @param array $structure
  *}
+<style>
+	#structure a.open {
+		font-weight: bold;
+	}
+	#structure li .editor {
+		display: none;
+		margin-left: 30px;
+	}
+	#structure li:hover > .editor {
+		display: inline;
+	}
+</style>
 <div id="structure">
 	<ul n:block="#render" n:inner-foreach="$structure as $dir => $content" style="display: none;">
 		<li>
-			<a {if $content->open}class="open"{/if} href="?test={$content->relative}">{$content->name}</a>
+			<a class="node {if $content->open}open{/if}" href="?test={$content->relative}">{$content->name}</a>
+			<small n:if="$content->editor" class="editor"><a href="{$content->editor}">(open in editor)</a></small>
 			{if $content->structure}
 				{include #render structure => $content->structure}
 			{/if}
@@ -15,7 +28,7 @@
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
 <script>
-	$('#structure li a').click(function (event) {
+	$('#structure li a.node').click(function (event) {
 		var ul = $('> ul', $(this).parent());
 		if (ul.is('ul'))
 		{
@@ -23,17 +36,11 @@
 			return false;
 		}
 	});
-	$('#structure li a').dblclick(function (event) {
+	$('#structure li a.node').dblclick(function (event) {
 		window.location = this.href;
 		$('> ul', $(this).parent()).show();
 	});
-	var open = $('#structure a.open, #structure > ul');
+	var open = $('#structure a.node.open, #structure > ul');
 	$('> ul', open.parent()).show();
 	open.parents('ul').show();
 </script>
-
-<style>
-	#structure a.open {
-		font-weight: bold;
-	}
-</style>

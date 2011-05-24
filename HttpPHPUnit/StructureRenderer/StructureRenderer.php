@@ -39,6 +39,7 @@ class StructureRenderer extends Control
 
 	public function render()
 	{
+		$editor = new OpenInEditor;
 		$structure = (object) array('structure' => array());
 		foreach (Finder::findFiles('*Test.php')->from($this->dir) as $file)
 		{
@@ -48,21 +49,24 @@ class StructureRenderer extends Control
 			{
 				$r = isset($cursor->relative) ? $cursor->relative . DIRECTORY_SEPARATOR : NULL;
 				$cursor = & $cursor->structure[$d];
+				$path = $this->dir . DIRECTORY_SEPARATOR . $r . $d;
 				$cursor = (object) array(
 					'relative' => $r . $d,
 					'name' => $d,
-					'open' => ($this->dir . DIRECTORY_SEPARATOR . $r . $d) === $this->open,
+					'open' => $path === $this->open,
 					'structure' => isset($cursor->structure) ? $cursor->structure : array(),
+					'editor' => $editor->link($path, 1),
 				);
 				if ($cursor->open AND !$cursor->structure AND is_file($this->open))
 				{
-					foreach ($this->loadMethod() as $m)
+					foreach ($this->loadMethod() as $l => $m)
 					{
 						$cursor->structure[$m] = (object) array(
 							'relative' => $cursor->relative . '::' . $m,
 							'name' => $m,
 							'open' => $this->method === $m,
 							'structure' => array(),
+							'editor' => $editor->link($this->open, $l),
 						);
 					}
 				}
@@ -74,14 +78,22 @@ class StructureRenderer extends Control
 		$this->template->render();
 	}
 
-	/** @return array of string */
+	/** @return array of line => testName */
 	private function loadMethod()
 	{
-		if (is_file($this->open) AND preg_match_all('#function\s+(test[^\s\(]*)\s*\(#si', file_get_contents($this->open), $matches))
+		$result = array();
+		if (is_file($this->open))
 		{
-			return $matches[1];
+			$data = file_get_contents($this->open);
+			foreach (explode("\n", $data) as $line => $lineData)
+			{
+				if (preg_match('#function\s+(test[^\s\(]*)\s*\(#si', $lineData, $match))
+				{
+					$result[$line+1] = $match[1];
+				}
+			}
 		}
-		return array();
+		return $result;
 	}
 
 }

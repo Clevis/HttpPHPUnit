@@ -67,6 +67,7 @@ class HttpPHPUnit
 		require_once __DIR__ . '/HttpPHPUnit_TextUI_Command.php';
 		require_once __DIR__ . '/HttpPHPUnit_Util_TestDox_ResultPrinter.php';
 		require_once __DIR__ . '/StructureRenderer/StructureRenderer.php';
+		require_once __DIR__ . '/OpenInEditor.php';
 
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
