@@ -68,14 +68,14 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** Assert error */
 	public function addFailure(PHPUnit_Framework_Test $test, PHPUnit_Framework_AssertionFailedError $e, $time)
 	{
-		$this->error($test, $e, self::FAILURE);
+		$this->renderError($test, $e, self::FAILURE);
 		parent::addFailure($test, $e, $time);
 	}
 
 	/** Other error */
 	public function addError(PHPUnit_Framework_Test $test, Exception $e, $time)
 	{
-		$this->error($test, $e, self::ERROR);
+		$this->renderError($test, $e, self::ERROR);
 		parent::addError($test, $e, $time);
 	}
 
@@ -93,7 +93,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	}
 
 	/** Vypise chybu */
-	protected function error(PHPUnit_Framework_Test $test, Exception $e, $state)
+	protected function renderError(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
 		if ($this->debug)
 		{
