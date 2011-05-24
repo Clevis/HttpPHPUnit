@@ -102,11 +102,10 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		$this->write("<h2>{$state} ");
 		$this->renderInfo($test, $e);
 		$this->write('</h2>');
-		$this->write(
-			$state === self::ERROR ?
-			'<p><pre>' . htmlspecialchars($e) . '</pre></p>' :
-			'<p>' . htmlspecialchars($e->getMessage()) . '</p>'
-		);
+		$message = $e->getMessage();
+		if (!$message) $message = '(no message)';
+		if ($state === self::ERROR) $message = get_class($e) . ': ' . $message;
+		$this->write(Html::el('p', $message));
 	}
 
 	/** Vysledek celeho testu */
