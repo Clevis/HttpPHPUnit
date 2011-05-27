@@ -235,7 +235,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
 		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
-		if ($editor = $this->getEditorLink($path, $e))
+		if ($editor = $this->getEditorLink($path, $e, $method))
 		{
 			$editor = Html::el('a', '(open in editor)')->href($editor);
 			$this->write(" <small><small>$editor</small></small>");
@@ -248,7 +248,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	 * @param Exception
 	 * @return string|NULL
 	 */
-	private function getEditorLink($path, Exception $e)
+	private function getEditorLink($path, Exception $e, $method)
 	{
 		if ($e->getFile() === $path)
 		{
@@ -259,6 +259,14 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			if (isset($trace['file']) AND $trace['file'] === $path)
 			{
 				return $this->editor->link($path, $trace['line']);
+			}
+		}
+		if (is_file($path))
+		{
+			$tmp = preg_grep('#function\s+' . preg_quote($method) . '\s*\(#si', explode("\n", file_get_contents($path)));
+			if ($tmp)
+			{
+				return $this->editor->link($path, key($tmp) + 1);
 			}
 		}
 		return $this->editor->link($path, 1);
