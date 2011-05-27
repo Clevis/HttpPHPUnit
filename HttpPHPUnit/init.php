@@ -88,7 +88,7 @@ class HttpPHPUnit
 	 */
 	public function run($dir, $arg = '--no-globals-backup --strict')
 	{
-		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
+		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'><html><body>";
 		if ($this->testDir)
 		{
 			echo '<h2>';
@@ -111,6 +111,7 @@ class HttpPHPUnit
 		$printer->render();
 		echo '</pre>';
 		foreach ($this->onAfter as $cb) $cb();
+		echo '</body></html>';
 	}
 
 	/**
