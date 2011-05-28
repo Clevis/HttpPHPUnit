@@ -95,10 +95,6 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** Vypise chybu */
 	protected function renderError(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
-		if ($this->debug)
-		{
-			Debug::toStringException($e);
-		}
 		$this->write("<h2>{$state} ");
 		$this->renderInfo($test, $e);
 		$this->write('</h2>');
@@ -140,6 +136,10 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		else
 		{
 			$this->write(Html::el('p', $message));
+		}
+		if ($this->debug)
+		{
+			Debug::toStringException($e);
 		}
 	}
 
