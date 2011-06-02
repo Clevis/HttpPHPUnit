@@ -138,15 +138,25 @@ class HttpPHPUnit
 		$appDir = realpath($appDir);
 		$coverage->filter()->addDirectoryToWhitelist($appDir);
 		$coverage->setProcessUncoveredFilesFromWhitelist(false);
-		$this->onBefore['coverage'] = function () use ($coverageDir) {
+		$lastModify = array();
+		$this->onBefore['coverage'] = function () use ($coverageDir, & $lastModify) {
 			foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
 			{
-				unlink($file);
+				$file = (string) $file;
+				$lastModify[$file] = filemtime($file);
 			}
 		};
-		$this->onAfter['coverage'] = function () use ($coverageDir) {
+		$this->onAfter['coverage'] = function () use ($coverageDir, & $lastModify) {
 			$d = str_replace(DIRECTORY_SEPARATOR, '/', HttpPHPUnit::dirDiff(dirname($_SERVER['SCRIPT_FILENAME']), $coverageDir));
 			echo "<a href='$d'>coverage</a>";
+			foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
+			{
+				$file = (string) $file;
+				if (isset($lastModify[$file]) AND $lastModify[$file] === filemtime($file))
+				{
+					unlink($file);
+				}
+			}
 		};
 		$this->arg('--coverage-html ' . $coverageDir);
 		return $coverage;
