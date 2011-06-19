@@ -115,7 +115,16 @@ class HttpPHPUnit
 	{
 		require_once 'PHP/CodeCoverage.php';
 		$coverage = PHP_CodeCoverage::getInstance();
-		if ($this->testDir) return $coverage;
+		if ($this->testDir OR !extension_loaded('xdebug'))
+		{
+			if (!extension_loaded('xdebug'))
+			{
+				$this->onAfter['coverage'] = function () {
+					echo 'Coverage: The Xdebug extension is not loaded.';
+				};
+			}
+			return $coverage;
+		}
 		@mkdir ($coverageDir);
 		if (!is_writable($coverageDir))
 		{
