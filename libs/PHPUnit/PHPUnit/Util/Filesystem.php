@@ -51,7 +51,7 @@
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
  * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 3.5.13
+ * @version    Release: 3.5.14
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.0.0
  */
@@ -121,7 +121,8 @@ class PHPUnit_Util_Filesystem
     }
 
     /**
-     * Wrapper for file_exists() that searches the include_path.
+     * Implementation of stream_resolve_include_path() in PHP
+     * for version before PHP 5.3.2.
      *
      * @param  string $file
      * @return mixed
@@ -130,6 +131,10 @@ class PHPUnit_Util_Filesystem
      */
     public static function fileExistsInIncludePath($file)
     {
+        if (function_exists('stream_resolve_include_path')) {
+            return stream_resolve_include_path($file);
+        }
+
         if (file_exists($file)) {
             return realpath($file);
         }

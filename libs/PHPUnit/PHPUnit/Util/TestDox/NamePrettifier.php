@@ -51,7 +51,7 @@
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
  * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
  * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 3.5.13
+ * @version    Release: 3.5.14
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.1.0
  */
@@ -109,11 +109,11 @@ class PHPUnit_Util_TestDox_NamePrettifier
             return $buffer;
         }
 
-        $string = preg_replace('#\d+$#', '', $name);
+        $string = preg_replace('#\d+$#', '', $name, -1, $count);
 
         if (in_array($string, $this->strings)) {
             $name = $string;
-        } else {
+        } else if ($count == 0) {
             $this->strings[] = $string;
         }
 

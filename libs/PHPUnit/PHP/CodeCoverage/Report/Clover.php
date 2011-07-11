@@ -54,7 +54,7 @@ require_once 'PHP/Token/Stream/CachingFactory.php';
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
  * @copyright  2009-2011 Sebastian Bergmann <sb@sebastian-bergmann.de>
  * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 1.0.3
+ * @version    Release: 1.0.4
  * @link       http://github.com/sebastianbergmann/php-code-coverage
  * @since      Class available since Release 1.0.0
  */
@@ -456,7 +456,7 @@ class PHP_CodeCoverage_Report_Clover
 
         if ($target !== NULL) {
             if (!is_dir(dirname($target))) {
-              mkdir(dirname($target), 0, TRUE);
+              mkdir(dirname($target), 0777, TRUE);
             }
 
             return $document->save($target);
