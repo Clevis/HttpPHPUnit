@@ -98,6 +98,15 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		$this->write("<h2>{$state} ");
 		$this->renderInfo($test, $e);
 		$this->write('</h2>');
+
+		$ref = new \Nette\Reflection\Property('PHPUnit_Framework_TestCase', 'data');
+		$ref->setAccessible(true);
+		$data = $ref->getValue($test);
+		if ($data)
+		{
+			$this->write('With data from @dataProvider: ' . Html::el('pre')->setText(var_export($data, TRUE)));
+		}
+
 		$message = $e->getMessage();
 		if (!$message) $message = '(no message)';
 		if ($state === self::ERROR) $message = get_class($e) . ': ' . $message;
