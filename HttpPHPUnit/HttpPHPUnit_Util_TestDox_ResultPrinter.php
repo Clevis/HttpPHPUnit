@@ -254,13 +254,20 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			return $this->editor->link($path, $e->getLine());
 		}
+		$last = $first = NULL;
 		foreach ($e->getTrace() as $trace)
 		{
-			if (isset($trace['file']) AND $trace['file'] === $path)
+			if ($first === NULL AND isset($trace['file']) AND $trace['file'] === $path)
 			{
-				return $this->editor->link($path, $trace['line']);
+				$first = $this->editor->link($path, $trace['line']);
 			}
+			if ($trace['function'] === $method AND isset($last['file']) AND $last['file'] === $path)
+			{
+				return $this->editor->link($path, $last['line']);
+			}
+			$last = $trace;
 		}
+		if ($first !== NULL) return $first;
 		if (is_file($path))
 		{
 			$tmp = preg_grep('#function\s+' . preg_quote($method) . '\s*\(#si', explode("\n", file_get_contents($path)));
