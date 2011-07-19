@@ -32,6 +32,9 @@ class HttpPHPUnit
 	/** @var string|NULL */
 	private $method = NULL;
 
+	/** @var bool */
+	private $run;
+
 	/** @var array of callback before run test */
 	private $onBefore = array();
 
@@ -68,6 +71,7 @@ class HttpPHPUnit
 			if ($this->debug === NULL) $this->debug = true;
 		}
 		if ($this->debug === NULL) $this->debug = false;
+		$this->run = (isset($_GET['run']) OR $this->testDir);
 	}
 
 	/**
@@ -92,14 +96,26 @@ class HttpPHPUnit
 		$arg = $this->prepareArgs($dir);
 		foreach ($this->onBefore as $cb) $cb($this, $dir);
 
-		$command = new HttpPHPUnit_TextUI_Command;
-		$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
-		$printer->debug = (bool) $this->debug;
-		$printer->dir = $dir . DIRECTORY_SEPARATOR;
-		echo '<pre>';
-		$command->run($arg, $printer);
-		$printer->render();
-		echo '</pre>';
+		if ($this->run)
+		{
+			$command = new HttpPHPUnit_TextUI_Command;
+			$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
+			$printer->debug = (bool) $this->debug;
+			$printer->dir = $dir . DIRECTORY_SEPARATOR;
+			echo '<pre>';
+			$command->run($arg, $printer);
+			$printer->render();
+			echo '</pre>';
+		}
+		else
+		{
+			$uri = rtrim($_SERVER['REQUEST_URI'], '?&');
+			$uri .= strpos($uri, '?') === false ? '?' : '&';
+			$uri .= 'run';
+			echo '<h2><center>';
+			echo '<a href="' . $uri . '">START</a>';
+			echo '</center></h2>';
+		}
 		foreach ($this->onAfter as $cb) $cb();
 		echo '</body></html>';
 	}
@@ -115,7 +131,7 @@ class HttpPHPUnit
 	{
 		require_once 'PHP/CodeCoverage.php';
 		$coverage = PHP_CodeCoverage::getInstance();
-		if ($this->testDir OR !extension_loaded('xdebug'))
+		if (!$this->run OR $this->testDir OR !extension_loaded('xdebug'))
 		{
 			if (!extension_loaded('xdebug'))
 			{
