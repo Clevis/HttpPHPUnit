@@ -123,3 +123,7 @@ div.failure .editor, div.error .editor {
 #summary .details {
 	margin-left: 30px;
 }
+
+#summary .details > a {
+	color: #00e;
+}
