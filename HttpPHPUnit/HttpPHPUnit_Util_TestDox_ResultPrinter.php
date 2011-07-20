@@ -95,9 +95,14 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** Vypise chybu */
 	protected function renderError(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
-		$this->write("<h2>{$state} ");
+		if ($this->failed === 0) {
+			$this->write('<h2>Failures</h2>');
+		}
+
+		$this->write('<div class="' . strtolower($state) . '">');
+		$this->write("<h3><span class=\"state\">{$state}</span> ");
 		$this->renderInfo($test, $e, false);
-		$this->write('</h2>');
+		$this->write('</h3>');
 
 		$message = $e->getMessage();
 		if (!$message) $message = '(no message)';
@@ -111,10 +116,12 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			$this->write(
 				Html::el('p', $short)
 					->id("message-short-$id")
+					->class('message-short')
 			);
 			$this->write(
-				Html::el('a', "\xE2\x80\xA6full message\xE2\x80\xA6")
+				Html::el('a', "view full message") // "\xE2\x80\xA6full message\xE2\x80\xA6"
 					->id("message-link-$id")
+					->class('message-link')
 					->href('#')
 					->onclick("
 						document.getElementById('message-short-$id').style.display = 'none';
@@ -126,6 +133,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			$this->write(
 				Html::el('p', $message)
 					->id("message-full-$id")
+					->class('message-full')
 					->style('display: none; cursor: pointer;')
 					->onclick("
 						this.style.display = 'none';
@@ -138,6 +146,9 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			$this->write(Html::el('p', $message));
 		}
+
+		$this->write('</div>');
+
 		if ($this->debug)
 		{
 			Debug::toStringException($e);
@@ -148,14 +159,34 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	protected function endRun()
 	{
 		parent::endRun();
-		if (!$this->failed)
+
+		$this->write('<div id="summary">');
+
+		if ($this->successful === 0 && $this->failed === 0)
 		{
-			$this->write("<h1>OK {$this->successful}</h1>");
+			if ($this->skipped && !$this->incomplete) $summary = 'All tests were skipped.';
+			elseif ($this->incomplete && !$this->skipped) $summary = 'All tests were incomplete.';
+			else $summary = 'All tests were skipped or incomplete.';
+		}
+		elseif ($this->failed === 0)
+		{
+			if ($this->successful === 1) $summary = 'Test was successful.';
+			else $summary = "All {$this->successful} tests were successful.";
 		}
 		else
 		{
-			$this->write("<h1>FAILURES! {$this->failed}</h1>");
+			if ($this->failed === 1) $summary = 'One test failed!';
+			else $summary = "{$this->failed} tests failed!";
 		}
+
+		$this->write("<h2>Summary</h2>");
+		$this->write("<p id=\"sentence\">$summary</p>");
+
+		if ($this->failed)
+		{
+			$this->write("<h3>Failed: {$this->failed}</h3>");
+		}
+
 		foreach (array(
 			array(self::INCOMPLETE, $this->incomplete),
 			array(self::SKIPPED, $this->skipped),
@@ -164,17 +195,25 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			list($state, $count) = $tmp;
 			if ($count)
 			{
-				$this->write("{$state}: {$count}<br><small>");
+				$this->write("<h3>{$state}: {$count}</h3>");
+				$this->write("<div class=\"details\">");
 				foreach ($this->endInfo[$state] as $tmp)
 				{
 					list($test, $e) = $tmp;
 					$this->renderInfo($test, $e);
 					$this->write(" " . htmlspecialchars($e->getMessage()) . "\n");
 				}
-				$this->write("</small><br><br>");
+				$this->write("</div>");
 			}
 		}
-		if ($this->failed) $this->write("Completed: {$this->successful}<br>");
+
+		if ($this->successful)
+		{
+			$this->write("<h3>Completed: {$this->successful}</h3>");
+		}
+
+
+		$this->write('</div>');
 	}
 
 	/** Odregistruje Debug aby chyby chytal PHPUnit */
@@ -237,11 +276,11 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e, $oneLine = true)
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
-		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
+		$this->write(Html::el($filter ? 'a' : NULL, "$class::$method")->href("?test=$filter"));
 		if ($editor = $this->getEditorLink($path, $e, $method))
 		{
-			$editor = Html::el('a', '(open in editor)')->href($editor);
-			$this->write(" <small><small>$editor</small></small>");
+			$editor = Html::el('a', 'open in editor')->href($editor);
+			$this->write(" <small class=\"editor\">$editor</small>");
 		}
 		if ($test instanceof PHPUnit_Framework_TestCase AND $dataSet = ResultPrinterTestCaseHelper::_getDataSetAsString($test))
 		{
