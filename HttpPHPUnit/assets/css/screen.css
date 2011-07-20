@@ -81,6 +81,10 @@ h1, h2, h3 {
 	width: 0; /* Znemožní klikání po celé šířce stránky */
 }
 
+#structure ul li span {
+	height: 14px;
+}
+
 #structure .open {
 	font-weight: bold;
 }
