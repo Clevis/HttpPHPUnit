@@ -13,8 +13,6 @@
 
 {* Assets *}
 <link rel="stylesheet" type="text/css" href="{$baseUri}/assets/css/screen.css">
-<script type="text/javascript" src="{$baseUri}/assets/js/init.js"></script>
-<script type="text/javascript" src="{$baseUri}/assets/js/listeners.js"></script>
 
 <div id="structure" class="filetree treeview">
 	<ul n:block="#render" style="display: none;">
@@ -31,3 +29,7 @@
 		{/foreach}
 	</ul>
 </div>
+
+{* Assets 2 (úmyslně za definicí #structure) *}
+<script type="text/javascript" src="{$baseUri}/assets/js/init.js"></script>
+<script type="text/javascript" src="{$baseUri}/assets/js/listeners.js"></script>
