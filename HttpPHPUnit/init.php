@@ -97,7 +97,6 @@ class HttpPHPUnit
 		echo '  <h2><em>in progress</em></h2>';
 		echo '</header>';
 		echo '<div id="content">';
-		if ($this->testDir) echo '<p><a id="backToAll" href="?run">« Back to all</a></p>';
 
 		$this->arg($arg);
 		$arg = $this->prepareArgs($dir);
@@ -109,10 +108,10 @@ class HttpPHPUnit
 			$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
 			$printer->debug = (bool) $this->debug;
 			$printer->dir = $dir . DIRECTORY_SEPARATOR;
-			echo '<pre>';
+			echo '<div id="output"><pre>';
 			$command->run($arg, $printer);
 			$printer->render();
-			echo '</pre>';
+			echo '</pre></div>';
 		}
 		else
 		{

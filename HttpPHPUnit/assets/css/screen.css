@@ -36,12 +36,16 @@ header h2 {
 }
 
 #backToAll {
+	margin: 3px 0 5px 0;
+}
+
+#backToAll a {
 	color: inherit;
 	text-decoration: none;
 }
 
-#backToAll:hover {
-	color: red;
+#backToAll a:hover {
+	color: #e00;
 }
 
 #content h2 {
@@ -78,13 +82,17 @@ small.editor a:hover {
 }
 
 #structure {
-	/*width: 450px;*/ /* Znemožní klikání po celé šířce stránky */
-	/*float: left;*/
-	overflow: hidden;
+	width: 300px; /* Znemožní klikání po celé šířce stránky */
+	float: left;
+}
+
+#structure {
+	word-wrap: break-word;
 }
 
 #structure .node {
-	height: 14px;
+	/*height: 14px;*/
+}
 }
 
 #structure .node.open a.name {
@@ -104,6 +112,18 @@ small.editor a:hover {
 
 #structure .node:hover .actions .editor {
 	display: inline;
+}
+
+#output {
+	margin-left: 320px;
+}
+
+#output h2 {
+	margin-top: 0;
+}
+
+#output > pre {
+	margin: 0;
 }
 
 div.failure, div.error {
