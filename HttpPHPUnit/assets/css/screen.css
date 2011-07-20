@@ -49,7 +49,7 @@ header h2 {
 }
 
 #content h2 {
-	font-size: 22px;
+	font-size: 24px;
 	font-weight: bold;
 	margin: 20px 0px 5px 0px;
 }
@@ -138,13 +138,17 @@ div.failure a, div.error a {
 }
 
 div.failure h3, div.error h3 {
-	margin-left: -20px;
+	margin-left: -30px;
 	margin-top: 10px;
 	margin-bottom: 5px;
 }
 
 div.failure .editor, div.error .editor {
 	font-size: 12px;
+}
+
+.message-short {
+	cursor: pointer;
 }
 
 #summary {
@@ -156,12 +160,13 @@ div.failure .editor, div.error .editor {
 }
 
 #summary h3 {
-	margin: 10px 0 0 10px;
+	margin: 10px 0 5px 0px;
 	font-weight: normal;
+	/*font-size: inherit;*/
 }
 
 #summary .details {
-	margin-left: 30px;
+	margin-left: 20px;
 }
 
 #summary .details > a {
