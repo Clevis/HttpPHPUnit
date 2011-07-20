@@ -16,7 +16,7 @@
 
 <div id="structure" class="filetree treeview">
 
-	<p id="backToAll"><a href="?run">« Back to all</a></p>
+	<p n:if="isset($_GET['test'])" id="backToAll"><a href="?run">« Back to all</a></p>
 
 	<ul n:block="#render" style="display: none;">
 		{foreach $structure as $dir => $content}
