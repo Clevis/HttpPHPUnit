@@ -100,7 +100,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		}
 
 		$this->write('<div class="' . strtolower($state) . '">');
-		$this->write("<h3><span class=\"state\">{$state}</span> ");
+		$this->write("<h3><span class=\"state\">{$state}</span> in ");
 		$this->renderInfo($test, $e, false);
 		$this->write('</h3>');
 
@@ -213,7 +213,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		}
 
 
-		$this->write('</div>');
+		$this->write('</div>'); // #summary
 	}
 
 	/** Odregistruje Debug aby chyby chytal PHPUnit */
