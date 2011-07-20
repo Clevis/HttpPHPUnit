@@ -82,15 +82,22 @@ class HttpPHPUnit
 	 */
 	public function run($dir, $arg = '--no-globals-backup --strict')
 	{
-		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'><html><body>";
+		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
+
+		echo '<header>';
 		if ($this->testDir)
 		{
-			echo '<h2>';
-			echo $this->testDir;
-			if ($this->method) echo ' :: ' . $this->method;
-			echo '<br><a href="?run">back to all</a>';
-			echo '</h2>';
+			echo '<h1>' . $this->testDir . ($this->method ? ('::' . $this->method) : '') . '</h1>';
 		}
+		else
+		{
+			echo '<h1>All tests</h1>';
+		}
+
+		echo '  <h2><em>in progress</em></h2>';
+		echo '</header>';
+		echo '<div id="content">';
+		if ($this->testDir) echo '<p><a id="backToAll" href="?run">« Back to all</a></p>';
 
 		$this->arg($arg);
 		$arg = $this->prepareArgs($dir);
@@ -117,7 +124,7 @@ class HttpPHPUnit
 			echo '</center></h2>';
 		}
 		foreach ($this->onAfter as $cb) $cb();
-		echo '</body></html>';
+		echo '</div>';
 	}
 
 	/**
