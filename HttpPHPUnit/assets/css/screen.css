@@ -93,6 +93,9 @@ small.editor a:hover {
 #structure .node {
 	/*height: 14px;*/
 }
+
+#structure .node a.name:hover {
+	color: #e00;
 }
 
 #structure .node.open a.name {
