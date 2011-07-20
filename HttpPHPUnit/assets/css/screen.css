@@ -71,6 +71,7 @@ small.editor {
 	line-height: 16px;
 	font-size: inherit;
 	display: inline-block; /* Jinak nefunguje line-height */
+	display: none;
 }
 
 small.editor a {
@@ -114,7 +115,7 @@ small.editor a:hover {
 }
 
 #structure .node:hover .actions .editor {
-	display: inline;
+	/*display: inline;*/
 }
 
 #output {
