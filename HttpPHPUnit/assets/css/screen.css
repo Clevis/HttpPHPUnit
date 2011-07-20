@@ -77,6 +77,10 @@ h1, h2, h3 {
 	color: red;
 }
 
+#structure {
+	width: 0; /* Znemožní klikání po celé šířce stránky */
+}
+
 #structure .open {
 	font-weight: bold;
 }
