@@ -18,10 +18,13 @@
 	<ul n:block="#render" style="display: none;">
 		{foreach $structure as $dir => $content}
 			<li>
-				<span n:class="$content->editor ? file : folder, $content->open ? open">
-					<a class="node {if $content->open}open{/if}" href="?test={$content->relative}">{$content->name}</a>
-					<small n:if="$content->editor" class="editor"><a href="{$content->editor}">(open in editor)</a></small>
+				<span n:class="node, $content->editor ? file : folder, $content->open ? open">
+					<a class="name" href="?test={$content->relative}">{$content->name}</a>
+					<span class="actions">
+						<a class="editor" n:if="$content->editor" href="{$content->editor}">(open in editor)</a>
+					</span>
 				</span>
+
 				{if $content->structure}
 					{include #render structure => $content->structure}
 				{/if}

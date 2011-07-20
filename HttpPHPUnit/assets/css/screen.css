@@ -59,7 +59,7 @@ h1, h2, h3 {
 	font-family: Calibri, sans-serif;
 }
 
-.editor {
+small.editor {
 	padding-left: 20px;
 	background-image: url('../images/editor.png');
 	background-repeat: no-repeat;
@@ -69,24 +69,41 @@ h1, h2, h3 {
 	display: inline-block; /* Jinak nefunguje line-height */
 }
 
-.editor a {
+small.editor a {
 	color: inherit;
 }
 
-.editor a:hover {
+small.editor a:hover {
 	color: red;
 }
 
 #structure {
-	width: 0; /* Znemožní klikání po celé šířce stránky */
+	/*width: 450px;*/ /* Znemožní klikání po celé šířce stránky */
+	/*float: left;*/
+	overflow: hidden;
 }
 
-#structure ul li span {
+#structure .node {
 	height: 14px;
 }
 
-#structure .open {
+#structure .node.open a.name {
 	font-weight: bold;
+}
+
+#structure .node a.name {
+	color: inherit;
+	text-decoration: none;
+}
+
+#structure .node .actions .editor {
+	display: none;
+	color: inherit;
+	padding-left: 10px;
+}
+
+#structure .node:hover .actions .editor {
+	display: inline;
 }
 
 div.failure, div.error {

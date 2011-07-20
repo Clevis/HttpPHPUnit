@@ -1,7 +1,14 @@
 $(document).ready(function () {
 
-	$('#structure .node').dblclick(function (e) {
-		location.href = $(this).data('href');
+	$('#structure .node a.name').click(function (e) {
+		if (e.button == 0 && !e.shiftKey) {
+			$(this).closest('li').find('> .hitarea').trigger('click');
+			e.preventDefault();
+		}
+	});
+
+	$('#structure .node a.name').dblclick(function (e) {
+		location.href = this.href;
 	});
 
 	$('.message-short').click(function (e) {
@@ -12,15 +19,15 @@ $(document).ready(function () {
 // === Prokliknutí shiftem do editoru ==========================================
 
 	$('#structure .node.file').click(function (e) {
-		if (e.shiftKey) {
-			var editor = $(this).find('.editor a');
+		if (e.button == 0 && e.shiftKey) {
+			var editor = $(this).find('.actions .editor');
 			location.href = editor.attr('href');
-			e.stopImmediatePropagation(); // zabrání "rozbalení" souboru
+			e.preventDefault();
 		}
 	});
 
 	$('.failure, .error').find('h3 > a').click(function (e) {
-		if (e.shiftKey) {
+		if (e.button == 0 && e.shiftKey) {
 			var editor = $(this).closest('h3').find('.editor a');
 			location.href = editor.attr('href');
 			e.preventDefault();
@@ -28,7 +35,7 @@ $(document).ready(function () {
 	});
 
 	$('#summary .details > a').click(function (e) {
-		if (e.shiftKey) {
+		if (e.button == 0 && e.shiftKey) {
 			var editor = $(this).parent().find('.editor a');
 			location.href = editor.attr('href');
 			e.preventDefault();
