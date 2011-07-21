@@ -24,6 +24,7 @@ header h1 {
 	font: normal 24px Verdana, sans-serif;
 	text-shadow: 1px 1px 0 rgba(0, 0, 0, .4);
 	margin: 0;
+	word-wrap: break-word;
 }
 
 header h2 {
