@@ -27,7 +27,8 @@ class StructureRenderer extends Control
 		$open = explode('::', $open, 2);
 		if (isset($open[1]))
 		{
-			$this->method = $open[1];
+			$tmp = explode(' ', $open[1], 2);
+			$this->method = $tmp[0];
 		}
 		$this->open = realpath($dir . '/' . $open[0]);
 		$this->dir = realpath($dir);

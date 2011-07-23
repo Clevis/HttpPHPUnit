@@ -96,16 +96,8 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	protected function renderError(PHPUnit_Framework_Test $test, Exception $e, $state)
 	{
 		$this->write("<h2>{$state} ");
-		$this->renderInfo($test, $e);
+		$this->renderInfo($test, $e, false);
 		$this->write('</h2>');
-
-		$ref = new \Nette\Reflection\Property('PHPUnit_Framework_TestCase', 'data');
-		$ref->setAccessible(true);
-		$data = $ref->getValue($test);
-		if ($data)
-		{
-			$this->write('With data from @dataProvider: ' . Html::el('pre')->setText(var_export($data, TRUE)));
-		}
 
 		$message = $e->getMessage();
 		if (!$message) $message = '(no message)';
@@ -231,7 +223,8 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		if ($this->dir AND strncasecmp($path, $this->dir, strlen($this->dir)) === 0)
 		{
 			$dir = substr($path, strlen($this->dir));
-			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($method);
+			$describe = PHPUnit_Util_Test::describe($test, false);
+			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($describe[1]);
 		}
 		return array($class, $method, $path, $filter);
 	}
@@ -239,8 +232,9 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/**
 	 * @param PHPUnit_Framework_Test
 	 * @param Exception
+	 * @param bool
 	 */
-	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e)
+	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e, $oneLine = true)
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
 		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
@@ -248,6 +242,11 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			$editor = Html::el('a', '(open in editor)')->href($editor);
 			$this->write(" <small><small>$editor</small></small>");
+		}
+		if ($test instanceof PHPUnit_Framework_TestCase AND $dataSet = ResultPrinterTestCaseHelper::_getDataSetAsString($test))
+		{
+			if (!$oneLine) $this->write('<br>');
+			$this->write('<small><small>' . Html::el(NULL, $dataSet) . '</small></small>');
 		}
 	}
 
