@@ -66,7 +66,7 @@ class HttpPHPUnit
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
 		{
 			$this->method = substr($this->testDir, $pos+2);
-			$this->arg('--filter ' . escapeshellarg('(^|::)' . preg_quote($this->method) . '$'));
+			$this->arg('--filter ' . escapeshellarg('#(^|::)' . preg_quote($this->method, '#') . '$#'));
 			$this->testDir = substr($this->testDir, 0, $pos);
 			if ($this->debug === NULL) $this->debug = true;
 		}
@@ -198,7 +198,15 @@ class HttpPHPUnit
 	 */
 	public function arg($arg)
 	{
-		$this->arg = array_merge($this->arg, explode(' ', trim($arg)));
+		if (!preg_match_all('#((?<=^| )(?:(")[^"]*"|(\')[^\']*\'|[^ ]+))(?:$| )#U', $arg, $tmp))
+		{
+			throw new Exception("Invalid argument: '$arg'");
+		}
+		foreach ($tmp[1] as $k => $v)
+		{
+			$s = strlen($tmp[2][$k])+strlen($tmp[3][$k]);
+			$this->arg[] = substr($v, 0+$s, strlen($v)-$s-$s);
+		}
 		return $this;
 	}
 
