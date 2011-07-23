@@ -88,7 +88,7 @@ class HttpPHPUnit
 			echo '<h2>';
 			echo $this->testDir;
 			if ($this->method) echo ' :: ' . $this->method;
-			echo '<br><a href="?">back to all</a>';
+			echo '<br><a href="?run">back to all</a>';
 			echo '</h2>';
 		}
 
