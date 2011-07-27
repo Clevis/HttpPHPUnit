@@ -10,6 +10,13 @@ header {
 	padding: 20px 30px;
 }
 
+header small.version {
+	position: absolute;
+	top: 0px;
+	right: 10px;
+	font-size: 100%;
+}
+
 header.ok {
 	background-color: #00B300;
 	color: white;

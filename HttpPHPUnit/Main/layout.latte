@@ -18,6 +18,7 @@
 <script type="text/javascript" src="{$basePath}/assets/js/listeners.js"></script>
 
 <header>
+	<small class="version">{=PHPUnit_TextUI_TestRunner::printVersionString()}</small>
 	<h1>
 		{if $testDir}
 			{$testDir}{if $method}&nbsp;::&nbsp;{$method}{/if}
