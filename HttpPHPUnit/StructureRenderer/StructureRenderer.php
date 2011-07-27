@@ -60,8 +60,9 @@ class StructureRenderer extends Control
 					'open' => $open,
 					'structure' => isset($cursor->structure) ? $cursor->structure : array(),
 					'editor' => $editor->link($path, 1),
+					'mode' => is_file($path) ? 'file' : 'folder',
 				);
-				if (!$cursor->structure)
+				if (!$cursor->structure AND $cursor->mode === 'file')
 				{
 					foreach ($this->loadMethod($path) as $l => $m)
 					{
@@ -71,6 +72,7 @@ class StructureRenderer extends Control
 							'open' => $cursor->open AND $this->method === $m,
 							'structure' => array(),
 							'editor' => $editor->link($path, $l),
+							'mode' => 'method',
 						);
 					}
 				}
