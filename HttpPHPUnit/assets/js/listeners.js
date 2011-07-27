@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
 
 	$('#structure .node a.name').click(function (e) {
 		if (e.button == 0 && !e.shiftKey) {

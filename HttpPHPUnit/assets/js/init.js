@@ -14,9 +14,7 @@ $.extend($.fn.disableTextSelect = function () {
 	});
 });
 
-$(document).ready(function () {
-
-// === Header ==================================================================
+$(function () {
 
 	var header = $('header');
 	header.addClass($('.failure, .error').length ? 'failure' : 'ok');
