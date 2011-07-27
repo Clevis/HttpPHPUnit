@@ -1,5 +1,11 @@
 $(function () {
 
+$('.message-link').live('click', function () {
+	var p = $(this).parents('div').eq(0)
+	$('.message-short, .message-full', p).toggle();
+	$('span', this).toggle();
+	return false;
+});
 	$('#structure .node a.name').click(function (e) {
 		if (e.button == 0 && !e.shiftKey) {
 			$(this).closest('li').find('> .hitarea').trigger('click');
@@ -11,9 +17,6 @@ $(function () {
 		location.href = this.href;
 	});
 
-	$('.message-short').click(function (e) {
-		$(this).next('.message-link').trigger('click');
-	});
 
 
 // === Prokliknutí shiftem do editoru ==========================================

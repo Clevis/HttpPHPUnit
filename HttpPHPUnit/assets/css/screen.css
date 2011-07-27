@@ -148,10 +148,6 @@ div.failure .editor, div.error .editor {
 	font-size: 12px;
 }
 
-.message-short {
-	cursor: pointer;
-}
-
 #summary {
 	font-family: Calibri, sans-serif;
 }

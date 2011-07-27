@@ -109,37 +109,24 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		if ($state === self::ERROR) $message = get_class($e) . ': ' . $message;
 		if (strlen($message) > 400 OR substr_count($message, "\n") > 4)
 		{
-			static $id = 0;
-			$id++;
 			$short = strtok(substr($message, 0, 400), "\n");
 			for ($i=3; $i--;) $short .= "\n" . strtok("\n");
 			$this->write(
 				Html::el('p', $short)
-					->id("message-short-$id")
 					->class('message-short')
 			);
 			$this->write(
-				Html::el('a', "view full message") // "\xE2\x80\xA6full message\xE2\x80\xA6"
-					->id("message-link-$id")
-					->class('message-link')
-					->href('#')
-					->onclick("
-						document.getElementById('message-short-$id').style.display = 'none';
-						document.getElementById('message-full-$id').style.display = 'block';
-						this.style.display = 'none';
-						return false;
-					")
+				Html::el('p', $message)
+					->class('message-full')
+					->style('display: none;')
 			);
 			$this->write(
-				Html::el('p', $message)
-					->id("message-full-$id")
-					->class('message-full')
-					->style('display: none; cursor: pointer;')
-					->onclick("
-						this.style.display = 'none';
-						document.getElementById('message-short-$id').style.display = 'block';
-						document.getElementById('message-link-$id').style.display = 'block';
-					")
+				Html::el('a')
+					->class('message-link')
+					->href('#')
+					->add(Html::el('span', 'show'))
+					->add(Html::el('span', 'hide')->style('display: none;'))
+					->add(' full message')
 			);
 		}
 		else
