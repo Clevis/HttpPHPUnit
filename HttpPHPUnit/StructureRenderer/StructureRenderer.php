@@ -42,6 +42,7 @@ class StructureRenderer extends Control
 	{
 		$editor = new OpenInEditor;
 		$structure = (object) array('structure' => array());
+		$isAll = true;
 		foreach (Finder::findFiles('*Test.php')->from($this->dir) as $file)
 		{
 			$relative = substr($file, strlen($this->dir) + 1);
@@ -51,10 +52,12 @@ class StructureRenderer extends Control
 				$r = isset($cursor->relative) ? $cursor->relative . DIRECTORY_SEPARATOR : NULL;
 				$cursor = & $cursor->structure[$d];
 				$path = $this->dir . DIRECTORY_SEPARATOR . $r . $d;
+				$open = $path === $this->open;
+				if ($open) $isAll = false;
 				$cursor = (object) array(
 					'relative' => $r . $d,
 					'name' => $d,
-					'open' => $path === $this->open,
+					'open' => $open,
 					'structure' => isset($cursor->structure) ? $cursor->structure : array(),
 					'editor' => $editor->link($path, 1),
 				);
@@ -74,6 +77,8 @@ class StructureRenderer extends Control
 			}
 			$cursor->name = $file->getBasename();
 		}
+
+		$this->template->isAll = ($isAll AND $this->open !== false);
 		$this->template->basePath = TemplateFactory::getBasePath();
 		$this->template->structure = $structure->structure;
 		$this->template->setFile(__DIR__ . '/StructureRenderer.latte');

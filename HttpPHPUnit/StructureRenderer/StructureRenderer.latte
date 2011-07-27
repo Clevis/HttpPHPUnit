@@ -1,13 +1,14 @@
 {**
  * @author Petr Prochazka
  * @author Jan Tvrdík
+ * @param bool $isAll
  * @param string $basePath
  * @param array $structure
  *}
 
 <div id="structure" class="filetree treeview">
 
-	<p n:if="isset($_GET['test'])" id="backToAll"><a href="?run">« Back to all</a></p>
+	<p n:if="!$isAll" id="backToAll"><a href="?run">« Back to all</a></p>
 
 	<ul n:block="#render" style="display: none;">
 		{foreach $structure as $dir => $content}
