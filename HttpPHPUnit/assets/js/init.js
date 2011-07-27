@@ -17,7 +17,8 @@ $.extend($.fn.disableTextSelect = function () {
 $(function () {
 
 	var header = $('header');
-	header.addClass($('.failure, .error').length ? 'failure' : 'ok');
-	header.find('h2').text($('#sentence').text());
+	var sentence = $('#sentence');
+	header.addClass(sentence.data('state'));
+	header.find('h2').text(sentence.text());
 
 });

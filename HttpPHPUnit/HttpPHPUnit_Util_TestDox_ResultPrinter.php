@@ -162,25 +162,43 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 
 		$this->write('<div id="summary">');
 
-		if ($this->successful === 0 && $this->failed === 0)
+		$state = 'unknown';
+
+		$count = $this->failed + $this->successful + $this->skipped + $this->incomplete;
+		$f = function ($c, $s = true) use ($count) {
+			if ($c === 1 AND $count === 1) return 'Test ' . ($s ? 'was ' : '');
+			if ($c === 1) return '1 test ' . ($s ? 'was ' : '');
+			return "$c tests " . ($s ? 'were ' : '');
+		};
+
+		if ($this->failed)
 		{
-			if ($this->skipped && !$this->incomplete) $summary = 'All tests were skipped.';
-			elseif ($this->incomplete && !$this->skipped) $summary = 'All tests were incomplete.';
-			else $summary = 'All tests were skipped or incomplete.';
+			$state = 'failure';
+			$summary[] = $f($this->failed, false) . 'failed!';
 		}
-		elseif ($this->failed === 0)
+		else if ($this->successful)
 		{
-			if ($this->successful === 1) $summary = 'Test was successful.';
-			else $summary = "All {$this->successful} tests were successful.";
+			$state = 'ok';
+			$summary[] = $f($this->successful) . 'successful.';
 		}
-		else
+
+		if ($this->incomplete)
 		{
-			if ($this->failed === 1) $summary = 'One test failed!';
-			else $summary = "{$this->failed} tests failed!";
+			$summary[] = $f($this->incomplete) . 'incomplete.';
+		}
+		if ($this->skipped)
+		{
+			$summary[] = $f($this->skipped) . 'skipped.';
+		}
+
+		if (!$summary)
+		{
+			$state = 'failure';
+			$summary[] = 'No tests';
 		}
 
 		$this->write("<h2>Summary</h2>");
-		$this->write("<p id=\"sentence\">$summary</p>");
+		$this->write("<p id=\"sentence\" data-state=\"$state\">" . implode(' ', $summary) . '</p>');
 
 		if ($this->failed)
 		{
