@@ -61,6 +61,7 @@ class HttpPHPUnit
 		require_once __DIR__ . '/HttpPHPUnit_Util_TestDox_ResultPrinter.php';
 		require_once __DIR__ . '/StructureRenderer/StructureRenderer.php';
 		require_once __DIR__ . '/OpenInEditor.php';
+		require_once __DIR__ . '/Main/TemplateFactory.php';
 
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
@@ -82,25 +83,17 @@ class HttpPHPUnit
 	 */
 	public function run($dir, $arg = '--no-globals-backup --strict')
 	{
-		echo "<!DOCTYPE HTML>\n<meta charset='utf-8'>";
+		$template = TemplateFactory::create(__DIR__ . '/Main/layout.latte');
 
-		echo '<header>';
-		if ($this->testDir)
-		{
-			echo '<h1>' . $this->testDir . ($this->method ? ('::' . $this->method) : '') . '</h1>';
-		}
-		else
-		{
-			echo '<h1>All tests</h1>';
-		}
-
-		echo '  <h2><em>in progress</em></h2>';
-		echo '</header>';
-		echo '<div id="content">';
+		$template->testDir = $this->testDir;
+		$template->method = $this->method;
 
 		$this->arg($arg);
 		$arg = $this->prepareArgs($dir);
-		foreach ($this->onBefore as $cb) $cb($this, $dir);
+		$onBefore = $this->onBefore; $_this = $this;
+		$template->onBefore = function () use ($onBefore, $_this, $dir) {
+			foreach ($onBefore as $cb) $cb($_this, $dir);
+		};
 
 		if ($this->run)
 		{
@@ -108,22 +101,27 @@ class HttpPHPUnit
 			$printer = new HttpPHPUnit_Util_TestDox_ResultPrinter;
 			$printer->debug = (bool) $this->debug;
 			$printer->dir = $dir . DIRECTORY_SEPARATOR;
-			echo '<div id="output"><pre>';
-			$command->run($arg, $printer);
-			$printer->render();
-			echo '</pre></div>';
+
+			$template->run = function () use ($command, $printer, $arg) {
+				$command->run($arg, $printer);
+				$printer->render();
+			};
 		}
 		else
 		{
+			$template->run = false;
 			$uri = rtrim($_SERVER['REQUEST_URI'], '?&');
 			$uri .= strpos($uri, '?') === false ? '?' : '&';
 			$uri .= 'run';
-			echo '<h2><center>';
-			echo '<a href="' . $uri . '">START</a>';
-			echo '</center></h2>';
+			$template->startUri = $uri;
 		}
-		foreach ($this->onAfter as $cb) $cb();
-		echo '</div>';
+
+		$onAfter = $this->onAfter;
+		$template->onAfter = function () use ($onAfter) {
+			foreach ($onAfter as $cb) $cb();
+		};
+
+		$template->render();
 	}
 
 	/**

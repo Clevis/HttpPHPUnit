@@ -1,0 +1,36 @@
+{**
+ * @author Petr Prochazka
+ * @param string $testDir
+ * @param string|NULL $method
+ * @param Closure $onBefore
+ * @param Closure|false $run
+ * @param Closure $onAfter
+ *}
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+<header>
+	<h1>
+		{if $testDir}
+			{$testDir}{if $method}&nbsp;::&nbsp;{$method}{/if}
+		{else}
+			All tests
+		{/if}
+	</h1>
+	<h2><em>in progress</em></h2>
+</header>
+<div id="content">
+
+	<?php $onBefore(); ?>
+
+	<div id="output">
+
+		{if $run}
+			<pre><?php $run(); ?></pre>
+		{else}
+			<h2><a href="{$startUri}">START</a></h2>
+		{/if}
+
+		<?php $onAfter(); ?>
+
+	</div>
+</div>
