@@ -103,6 +103,7 @@ class HttpPHPUnit
 			$printer->dir = $dir . DIRECTORY_SEPARATOR;
 
 			$template->run = function () use ($command, $printer, $arg) {
+				while (@ob_end_flush()); flush();
 				$command->run($arg, $printer);
 				$printer->render();
 			};
