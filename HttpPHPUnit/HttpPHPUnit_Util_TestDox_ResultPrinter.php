@@ -249,7 +249,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** Zaregistruje zpet Debug */
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
-		if (Debug::isEnabled())
+		if (Debug::isEnabled() AND $this->netteDebugHandler)
 		{
 			set_error_handler($this->netteDebugHandler);
 		}
