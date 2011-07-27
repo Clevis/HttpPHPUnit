@@ -281,7 +281,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e, $oneLine = true)
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
-		$this->write(Html::el($filter ? 'a' : NULL, "$class::$method")->href("?test=$filter"));
+		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
 		if ($editor = $this->getEditorLink($path, $e, $method))
 		{
 			$editor = Html::el('a', 'open in editor')->href($editor);
