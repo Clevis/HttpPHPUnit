@@ -74,6 +74,7 @@ class StructureRenderer extends Control
 			}
 			$cursor->name = $file->getBasename();
 		}
+		$this->template->basePath = TemplateFactory::getBasePath();
 		$this->template->structure = $structure->structure;
 		$this->template->setFile(__DIR__ . '/StructureRenderer.latte');
 		$this->template->render();

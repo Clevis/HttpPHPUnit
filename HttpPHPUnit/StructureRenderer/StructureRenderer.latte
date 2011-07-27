@@ -1,18 +1,9 @@
 {**
  * @author Petr Prochazka
  * @author Jan Tvrdík
+ * @param string $basePath
  * @param array $structure
  *}
-
-{var $baseUri = 'Libs/HttpPHPUnit'}
-
-{* Libs *}
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-<script type="text/javascript" src="{$baseUri}/assets/plugins/jQuery.TreeView/jquery.treeview.js"></script>
-<link rel="stylesheet" type="text/css" href="{$baseUri}/assets/plugins/jQuery.TreeView/jquery.treeview.css">
-
-{* Assets *}
-<link rel="stylesheet" type="text/css" href="{$baseUri}/assets/css/screen.css">
 
 <div id="structure" class="filetree treeview">
 
@@ -45,5 +36,4 @@
 </div>
 
 {* Assets 2 (úmyslně za definicí #structure) *}
-<script type="text/javascript" src="{$baseUri}/assets/js/init.js"></script>
-<script type="text/javascript" src="{$baseUri}/assets/js/listeners.js"></script>
+<script type="text/javascript" src="{$basePath}/assets/js/structure.js"></script>

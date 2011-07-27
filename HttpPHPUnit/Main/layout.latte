@@ -5,9 +5,18 @@
  * @param Closure $onBefore
  * @param Closure|false $run
  * @param Closure $onAfter
+ * @param string $basePath
  *}
 <!DOCTYPE HTML>
 <meta charset="utf-8">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script type="text/javascript" src="{$basePath}/assets/plugins/jQuery.TreeView/jquery.treeview.js"></script>
+<link rel="stylesheet" type="text/css" href="{$basePath}/assets/plugins/jQuery.TreeView/jquery.treeview.css">
+
+<link rel="stylesheet" type="text/css" href="{$basePath}/assets/css/screen.css">
+<script type="text/javascript" src="{$basePath}/assets/js/init.js"></script>
+<script type="text/javascript" src="{$basePath}/assets/js/listeners.js"></script>
+
 <header>
 	<h1>
 		{if $testDir}
