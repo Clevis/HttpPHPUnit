@@ -8,6 +8,7 @@ body {
 
 header {
 	padding: 20px 30px;
+	background-color: #EDEDED;
 }
 
 header small.version {
@@ -18,13 +19,18 @@ header small.version {
 }
 
 header.ok {
-	background-color: #00B300;
+	background-color: #1AA022;
 	color: white;
 }
 
 header.failure {
 	background-color: #CD1818;
 	color: white;
+}
+
+header.unknown {
+	background-color: #FBEB83;
+	color: black;
 }
 
 header h1 {
