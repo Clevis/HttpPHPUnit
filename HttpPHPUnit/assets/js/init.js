@@ -18,7 +18,9 @@ $(function () {
 
 	var header = $('header');
 	var sentence = $('#sentence');
-	header.addClass(sentence.data('state'));
-	header.find('h2').text(sentence.text());
+	var state = sentence.data('state') || 'unknown';
+	var text = sentence.text() || 'ERROR';
+	header.addClass(state);
+	header.find('h2').text(text);
 
 });
