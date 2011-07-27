@@ -61,16 +61,16 @@ class StructureRenderer extends Control
 					'structure' => isset($cursor->structure) ? $cursor->structure : array(),
 					'editor' => $editor->link($path, 1),
 				);
-				if ($cursor->open AND !$cursor->structure AND is_file($this->open))
+				if (!$cursor->structure)
 				{
-					foreach ($this->loadMethod() as $l => $m)
+					foreach ($this->loadMethod($path) as $l => $m)
 					{
 						$cursor->structure[$m] = (object) array(
 							'relative' => $cursor->relative . '::' . $m,
 							'name' => $m,
-							'open' => $this->method === $m,
+							'open' => $cursor->open AND $this->method === $m,
 							'structure' => array(),
-							'editor' => $editor->link($this->open, $l),
+							'editor' => $editor->link($path, $l),
 						);
 					}
 				}
@@ -85,13 +85,16 @@ class StructureRenderer extends Control
 		$this->template->render();
 	}
 
-	/** @return array of line => testName */
-	private function loadMethod()
+	/**
+	 * @param string
+	 * @return array of line => testName
+	 */
+	private function loadMethod($path)
 	{
 		$result = array();
-		if (is_file($this->open))
+		if (is_file($path))
 		{
-			$data = file_get_contents($this->open);
+			$data = file_get_contents($path);
 			foreach (explode("\n", $data) as $line => $lineData)
 			{
 				if (preg_match('#function\s+(test[^\s\(]*)\s*\(#si', $lineData, $match))
