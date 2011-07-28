@@ -44,6 +44,7 @@ var Progress = (function () {
 			var text = sentence.text() || 'ERROR';
 			header.addClass(state);
 			header.find('h2').text(text);
+			if (!title) title = $('title');
 			title.text('Tests | ' + state + ' | ' + text);
 		}
 	};

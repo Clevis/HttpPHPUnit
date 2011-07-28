@@ -48,6 +48,7 @@
 			<pre><?php $run(); ?></pre>
 		{else}
 			<h2><a href="{$startUri}">START</a></h2>
+			<p style="display: none;" id="sentence" data-state="waiting">Waiting for start</p>
 		{/if}
 
 		<?php $onAfter(); ?>
