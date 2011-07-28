@@ -35,6 +35,9 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	/** @var array */
 	private $endInfo = array(self::INCOMPLETE => array(), self::SKIPPED => array());
 
+	/** @var bool */
+	private $progressStarted = false;
+
 	public function __construct()
 	{
 		$this->file = tempnam(sys_get_temp_dir(), 'test');
@@ -146,6 +149,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 	protected function endRun()
 	{
 		parent::endRun();
+		$this->write('<script>Progress.end();</script>');
 
 		$this->write('<div id="summary">');
 
@@ -231,6 +235,13 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 			$this->netteDebugHandler = set_error_handler(create_function('', ''));
 			restore_error_handler(); restore_error_handler();
 		}
+		if (!$this->progressStarted AND $test instanceof PHPUnit_Framework_TestCase AND $tmp = $test->getTestResultObject() AND $tmp = $tmp->topTestSuite())
+		{
+			$this->progressStarted = true;
+			$this->write('<script>Progress.start(' . json_encode($tmp->count()) . ');</script>');
+		}
+		list($class, $method, $path) = $this->getTestInfo($test);
+		$this->write('<script>Progress.add(' . json_encode("$class::$method") . ');</script>');
 	}
 
 	/** Zaregistruje zpet Debug */

@@ -14,13 +14,41 @@ $.extend($.fn.disableTextSelect = function () {
 	});
 });
 
+var Progress = (function () {
+	var number = 0, numberAll = 1;
+	var infoCount, infoText, progressBar, title;
+	return {
+		start: function (countAll) {
+			numberAll = countAll;
+			$('header h2 .info .countAll').text(countAll);
+			$('header h2 .info').show();
+			infoCount = $('header h2 .info .count');
+			infoText = $('header h2 .info .text');
+			progressBar = $('header h2 .progressBar');
+			title = $('title');
+		},
+		add: function (text) {
+			infoCount.text(number);
+			infoText.text(text);
+			progressBar.css('width', (number/numberAll)*100 + '%');
+			title.text('Tests | ' + number + '/' + numberAll + ' | ' + text);
+			number++
+		},
+		end: function () {
+			Progress.add('');
+		},
+		ready: function () {
+			var header = $('header');
+			var sentence = $('#sentence');
+			var state = sentence.data('state') || 'unknown';
+			var text = sentence.text() || 'ERROR';
+			header.addClass(state);
+			header.find('h2').text(text);
+			title.text('Tests | ' + state + ' | ' + text);
+		}
+	};
+})();
+
 $(function () {
-
-	var header = $('header');
-	var sentence = $('#sentence');
-	var state = sentence.data('state') || 'unknown';
-	var text = sentence.text() || 'ERROR';
-	header.addClass(state);
-	header.find('h2').text(text);
-
+	Progress.ready();
 });
