@@ -17,7 +17,6 @@ Environment::setVariable('tempDir', __DIR__ . '/tmp');
 $r = new RobotLoader;
 $r->setCacheStorage(Environment::getContext()->cacheStorage);
 $r->addDirectory(LIBS_DIR);
-$r->addDirectory(__DIR__ . '/../HttpPHPUnit');
 $r->addDirectory(__DIR__ . '/cases');
 $r->register();
 

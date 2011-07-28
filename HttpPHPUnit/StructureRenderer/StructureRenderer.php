@@ -1,5 +1,7 @@
 <?php
 
+namespace HttpPHPUnit;
+
 use Nette\Application\UI\Control;
 use Nette\DirectoryNotFoundException;
 use Nette\Utils\Finder;

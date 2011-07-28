@@ -1,14 +1,14 @@
 <?php
 
 /**
- * @covers HttpPHPUnit_Util_TestDox_ResultPrinter::getTestInfo
+ * @covers HttpPHPUnit\ResultPrinter::getTestInfo
  */
 class ResultPrinter_getTestInfo_Test extends TestCase
 {
 
 	public function testDataProvider()
 	{
-		$r = new HttpPHPUnit_Util_TestDox_ResultPrinter;
+		$r = new HttpPHPUnit\ResultPrinter;
 		$t = new self('DataProvider', array(1,2,'<b>3</b>'));
 		$r->setAutoFlush(false);
 		$r->dir = __DIR__;

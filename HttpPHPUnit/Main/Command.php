@@ -1,9 +1,13 @@
 <?php
 
+namespace HttpPHPUnit;
+
+use PHPUnit_TextUI_Command;
+
 /**
  * @author Petr Prochazka
  */
-class HttpPHPUnit_TextUI_Command extends PHPUnit_TextUI_Command
+class Command extends PHPUnit_TextUI_Command
 {
 	public function run(array $argv, $printer = NULL)
 	{

@@ -1,17 +1,17 @@
 <?php
 
 /**
- * @covers HttpPHPUnit_Util_TestDox_ResultPrinter::endRun
+ * @covers HttpPHPUnit\ResultPrinter::endRun
  */
 class ResultPrinter_endRun_Test extends TestCase
 {
-	/** @var HttpPHPUnit_Util_TestDox_ResultPrinter */
+	/** @var HttpPHPUnit\ResultPrinter */
 	private $r;
 	private $t;
 
 	protected function setUp()
 	{
-		$this->r = new HttpPHPUnit_Util_TestDox_ResultPrinter;
+		$this->r = new HttpPHPUnit\ResultPrinter;
 		$this->r->setAutoFlush(false);
 		$this->t = new self;
 	}

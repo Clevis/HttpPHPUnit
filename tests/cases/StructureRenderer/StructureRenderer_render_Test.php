@@ -1,7 +1,9 @@
 <?php
 
+use HttpPHPUnit\StructureRenderer;
+
 /**
- * @covers StructureRenderer::render
+ * @covers HttpPHPUnit\StructureRenderer::render
  */
 class StructureRenderer_render_Test extends TestCase
 {

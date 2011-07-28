@@ -1,12 +1,22 @@
 <?php
 
+namespace HttpPHPUnit;
+
 use Nette\Diagnostics\Debugger as Debug;
 use Nette\Utils\Html;
+use PHPUnit_Util_TestDox_ResultPrinter;
+use PHPUnit_Framework_Test;
+use PHPUnit_Framework_AssertionFailedError;
+use Exception;
+use PHPUnit_Framework_TestCase;
+use PHPUnit_Runner_BaseTestRunner;
+use ReflectionClass;
+use PHPUnit_Util_Test;
 
 /**
  * @author Petr Prochazka
  */
-class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
+class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 {
 	const FAILURE = 'Failure';
 	const ERROR = 'Error';

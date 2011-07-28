@@ -1,15 +1,15 @@
 <?php
 
 /**
- * @covers HttpPHPUnit::arg
+ * @covers HttpPHPUnit\Main::arg
  */
-class HttpPHPUnit_arg_Test extends TestCase
+class Main_arg_Test extends TestCase
 {
 	private $h;
 
 	protected function setUp()
 	{
-		$this->h = new HttpPHPUnit(LIBS_DIR . '/PHPUnit');
+		$this->h = new HttpPHPUnit\Main(LIBS_DIR . '/PHPUnit');
 	}
 
 	public function test1()

@@ -1,5 +1,7 @@
 <?php
 
+namespace HttpPHPUnit;
+
 use Nette\Object;
 use Nette\Diagnostics\Debugger as Debug;
 

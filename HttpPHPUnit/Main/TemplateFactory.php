@@ -1,7 +1,10 @@
 <?php
 
+namespace HttpPHPUnit;
+
 use Nette\Application\UI\Control;
 use Nette\Utils\Strings as String;
+use Exception;
 
 /**
  * @author Petr Prochazka
