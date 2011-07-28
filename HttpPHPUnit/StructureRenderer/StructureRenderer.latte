@@ -9,6 +9,7 @@
 <div id="structure" class="filetree treeview">
 
 	<p n:if="!$isAll" id="backToAll"><a href="?run">« Back to all</a></p>
+	<img class="structure-placeholder" src="{$basePath}/assets/images/ajax-loader.gif">
 
 	<ul n:block="#render" style="display: none;">
 		{foreach $structure as $dir => $content}

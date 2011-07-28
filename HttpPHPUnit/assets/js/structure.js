@@ -5,6 +5,7 @@ $('> ul', open.parent()).show();
 open.parents('ul').show();
 structure.find('.node').disableTextSelect(); // zabrání označení položky při dvojkliku
 structure.treeview();
+$('img.structure-placeholder', structure).hide();
 
 $('#structure .node a.name').click(function (e) {
 	if (e.button == 0 && !e.shiftKey) {
