@@ -244,7 +244,7 @@ class HttpPHPUnit_Util_TestDox_ResultPrinter extends PHPUnit_Util_TestDox_Result
 		{
 			$this->successful++;
 		}
-		parent::startTest($test, $time);
+		parent::endTest($test, $time);
 	}
 
 	/**
