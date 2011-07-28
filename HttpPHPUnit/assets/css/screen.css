@@ -55,6 +55,8 @@ header h1 {
 header h2 {
 	font: normal 17px Verdana, sans-serif;
 	margin-bottom: 0;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
 #content {
