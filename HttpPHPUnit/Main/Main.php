@@ -73,6 +73,7 @@ class Main extends Object
 		}
 		if ($this->debug === NULL) $this->debug = false;
 		$this->run = (isset($_GET['run']) OR $this->testDir);
+		$this->structure();
 	}
 
 	/**
@@ -187,7 +188,7 @@ class Main extends Object
 	 * @see StructureRenderer
 	 * @return HttpPHPUnit
 	 */
-	public function structure()
+	protected function structure()
 	{
 		$open = $this->testDir . '::' . $this->method;
 		$this->onBefore['structure'] = function ($foo, $dir) use ($open) {

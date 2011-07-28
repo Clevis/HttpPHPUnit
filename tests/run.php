@@ -8,8 +8,6 @@ $http = new HttpPHPUnit(__DIR__ . '/../libs/PHPUnit');
 
 require_once __DIR__ . '/boot.php';
 
-$http->structure();
-
 $http->coverage(__DIR__ . '/../HttpPHPUnit', __DIR__ . '/report');
 
 $http->run(__DIR__ . '/cases');
