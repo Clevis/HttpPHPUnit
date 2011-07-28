@@ -8,7 +8,7 @@ structure.treeview();
 $('img.structure-placeholder', structure).hide();
 
 $('#structure .node a.name').click(function (e) {
-	if (e.button == 0 && !e.shiftKey) {
+	if (!e.button && !e.shiftKey) {
 		$(this).closest('li').find('> .hitarea').trigger('click');
 		e.preventDefault();
 	}
@@ -16,4 +16,8 @@ $('#structure .node a.name').click(function (e) {
 
 $('#structure .node a.name').dblclick(function (e) {
 	location.href = this.href;
+	if ($('> ul', $(this).parent().parent()).is(':hidden'))
+	{
+		$(this).click();
+	}
 });
