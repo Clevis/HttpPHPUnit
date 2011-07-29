@@ -17,6 +17,11 @@ $.extend($.fn.disableTextSelect = function () {
 var Progress = (function () {
 	var number = 0, numberAll = 1;
 	var infoCount, infoText, progressBar, title;
+
+	$(function () {
+		Progress.ready();
+	});
+
 	return {
 		start: function (countAll) {
 			numberAll = countAll;
@@ -49,7 +54,3 @@ var Progress = (function () {
 		}
 	};
 })();
-
-$(function () {
-	Progress.ready();
-});
