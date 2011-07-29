@@ -18,6 +18,13 @@ var Progress = (function () {
 	var number = 0, numberAll = 1;
 	var infoCount, infoText, progressBar, title;
 
+	var interval;
+	if (window.chrome && window.chrome.csi)
+	{
+		interval = setInterval(function () {
+			if (window.chrome.csi().onloadT !== 0) Progress.ready();
+		}, 1000);
+	}
 	$(function () {
 		Progress.ready();
 	});
@@ -43,6 +50,7 @@ var Progress = (function () {
 			Progress.add('');
 		},
 		ready: function () {
+			clearInterval(interval);
 			var header = $('header');
 			var sentence = $('#sentence');
 			var state = sentence.data('state') || 'unknown';
