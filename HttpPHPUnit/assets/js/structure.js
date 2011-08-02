@@ -1,7 +1,7 @@
 
 var structure = $('#structure');
 var open = $('#structure .node.open, #structure > ul');
-$('> ul', open.parent()).show();
+$('> ul', open.closest('li, #structure')).show();
 open.parents('ul').show();
 structure.find('.node').disableTextSelect(); // zabrání označení položky při dvojkliku
 structure.treeview();
@@ -16,7 +16,7 @@ $('#structure .node a.name').click(function (e) {
 
 $('#structure .node a.name').dblclick(function (e) {
 	location.href = this.href;
-	if ($('> ul', $(this).parent().parent()).is(':hidden'))
+	if ($('> ul', $(this).closest('li')).is(':hidden'))
 	{
 		$(this).click();
 	}

@@ -24,7 +24,7 @@ $('.failure h3 > a, .error h3 > a').live('click', function (e) {
 
 $('#summary .details > a').live('click', function (e) {
 	if (e.button == 0 && e.shiftKey) {
-		var editor = $(this).parent().find('.editor a');
+		var editor = $(this).closest('.details').find('.editor a');
 		location.href = editor.attr('href');
 		e.preventDefault();
 	}
