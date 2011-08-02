@@ -16,8 +16,9 @@ $('#structure .node a.name').click(function (e) {
 
 $('#structure .node a.name').dblclick(function (e) {
 	location.href = this.href;
-	if ($('> ul', $(this).closest('li')).is(':hidden'))
+	var t = $(this);
+	if ($('> ul', t.closest('li')).is(':hidden'))
 	{
-		$(this).click();
+		t.click();
 	}
 });
