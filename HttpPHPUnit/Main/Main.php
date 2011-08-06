@@ -158,7 +158,6 @@ class Main extends Object
 		}
 		$appDir = realpath($appDir);
 		$coverage->filter()->addDirectoryToWhitelist($appDir);
-		$coverage->setProcessUncoveredFilesFromWhitelist(false);
 		$lastModify = array();
 		$this->onBefore['coverage'] = function () use ($coverageDir, & $lastModify) {
 			foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
