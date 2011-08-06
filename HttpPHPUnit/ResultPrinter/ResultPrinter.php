@@ -172,6 +172,8 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 			return "$c tests " . ($s ? 'were ' : '');
 		};
 
+		$summary = array();
+
 		if ($this->failed)
 		{
 			$state = 'failure';

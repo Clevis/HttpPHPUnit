@@ -105,4 +105,9 @@ class ResultPrinter_endRun_Test extends TestCase
 		$this->t('failure', '1 test failed! 1 test was incomplete. 1 test was skipped.');
 	}
 
+	public function testNoTest()
+	{
+		$this->t('failure', 'No tests');
+	}
+
 }
