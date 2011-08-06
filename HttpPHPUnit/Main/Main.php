@@ -67,7 +67,7 @@ class Main extends Object
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
 		{
 			$this->method = substr($this->testDir, $pos+2);
-			$this->arg('--filter ' . escapeshellarg('#(^|::)' . preg_quote($this->method, '#') . '($| )#'));
+			$this->arg('--filter ' . escapeshellarg('#(^|::)' . str_replace('"', '\x22', preg_quote($this->method, '#')) . '($| )#'));
 			$this->testDir = substr($this->testDir, 0, $pos);
 			if ($this->debug === NULL) $this->debug = true;
 		}
