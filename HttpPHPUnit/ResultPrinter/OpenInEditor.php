@@ -3,7 +3,6 @@
 namespace HttpPHPUnit;
 
 use Nette\Object;
-use Nette\Diagnostics\Debugger as Debug;
 
 /**
  * @author Petr Prochazka
@@ -16,9 +15,9 @@ class OpenInEditor extends Object
 
 	public function __construct()
 	{
-		if (self::$editor === NULL AND isset(Debug::$editor))
+		if (self::$editor === NULL AND isset(NetteDebug::get()->editor))
 		{
-			self::$editor = Debug::$editor;
+			self::$editor = NetteDebug::get()->editor;
 		}
 	}
 

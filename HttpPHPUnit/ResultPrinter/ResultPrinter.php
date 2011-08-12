@@ -2,7 +2,6 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Diagnostics\Debugger as Debug;
 use Nette\Utils\Html;
 use PHPUnit_Util_TestDox_ResultPrinter;
 use PHPUnit_Framework_Test;
@@ -151,7 +150,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 
 		if ($this->debug)
 		{
-			Debug::toStringException($e);
+			NetteDebug::get()->toStringException($e);
 		}
 	}
 
@@ -241,7 +240,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 	public function startTest(PHPUnit_Framework_Test $test)
 	{
 		parent::startTest($test);
-		if (Debug::isEnabled())
+		if (NetteDebug::get()->isEnabled())
 		{
 			// ziskat posledni registrovany handler a zrusi ho
 			$this->netteDebugHandler = set_error_handler(create_function('', ''));
@@ -259,7 +258,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 	/** Zaregistruje zpet Debug */
 	public function endTest(PHPUnit_Framework_Test $test, $time)
 	{
-		if (Debug::isEnabled() AND $this->netteDebugHandler)
+		if (NetteDebug::get()->isEnabled() AND $this->netteDebugHandler)
 		{
 			set_error_handler($this->netteDebugHandler);
 		}

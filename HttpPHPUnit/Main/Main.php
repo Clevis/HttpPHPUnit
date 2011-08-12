@@ -3,7 +3,6 @@
 namespace HttpPHPUnit;
 
 use Nette\Object;
-use Nette\Diagnostics\Debugger as Debug;
 use Nette\DirectoryNotFoundException;
 use Nette\Utils\Finder;
 use Exception;
@@ -61,6 +60,7 @@ class Main extends Object
 		require_once __DIR__ . '/../ResultPrinter/ResultPrinter.php';
 		require_once __DIR__ . '/../ResultPrinter/OpenInEditor.php';
 		require_once __DIR__ . '/../ResultPrinter/ResultPrinterTestCaseHelper.php';
+		require_once __DIR__ . '/../ResultPrinter/NetteDebug.php';
 		require_once __DIR__ . '/../StructureRenderer/StructureRenderer.php';
 
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
