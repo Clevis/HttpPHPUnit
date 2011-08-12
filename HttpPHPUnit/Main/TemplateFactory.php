@@ -3,7 +3,6 @@
 namespace HttpPHPUnit;
 
 use Nette\Application\UI\Control;
-use Nette\Utils\Strings as String;
 use Exception;
 
 /**
@@ -26,7 +25,8 @@ class TemplateFactory extends Control
 		$dir = realpath(__DIR__ . '/..');
 		$documentRoot = realpath($_SERVER['DOCUMENT_ROOT']);
 		if (!$documentRoot) throw new Exception;
-		if ($documentRoot != $dir AND !String::startsWith($dir, $documentRoot . DIRECTORY_SEPARATOR)) throw new Exception;
+		$tmp = $documentRoot . DIRECTORY_SEPARATOR;
+		if ($documentRoot != $dir AND strncmp($dir, $tmp, strlen($tmp)) !== 0) throw new Exception;
 		return str_replace('\\', '/', substr($dir, strlen($documentRoot)));
 	}
 
