@@ -59,6 +59,11 @@ var Progress = (function () {
 			header.find('h2').text(text);
 			if (!title) title = $('title');
 			title.text('Tests | ' + state + ' | ' + text);
+
+			// aktualizace favicon
+			var favicon = $('head > link[rel=icon]');
+			favicon.attr('href', favicon.attr('href').replace(/(\.ico)$/, '-' + state + '$1'));
+			favicon.remove().appendTo('head'); // kvůli FF
 		}
 	};
 })();
