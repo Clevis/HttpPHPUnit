@@ -14,7 +14,7 @@ class ResultPrinter_getTestInfo_Test extends TestCase
 		$r->dir = __DIR__;
 		$r->addError($t, new Exception, 0);
 		$content = file_get_contents($this->readAttribute($r, 'file'));
-		$this->assertContains('<a href="?test=\ResultPrinter_getTestInfo_Test.php::DataProvider+with+data+set+%22%22">ResultPrinter_getTestInfo :: DataProvider</a>', $content);
+		$this->assertContains('<a href="?test=/ResultPrinter_getTestInfo_Test.php::DataProvider+with+data+set+%22%22">ResultPrinter_getTestInfo :: DataProvider</a>', $content);
 	}
 
 }
