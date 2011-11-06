@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../libs/Nette/loader.php';
 require_once __DIR__ . '/../libs/dump.php';
 require_once __DIR__ . '/../HttpPHPUnit/init.php';
 

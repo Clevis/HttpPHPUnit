@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Utils\Html;
+use XNette\Utils\Html;
 use PHPUnit_Util_TestDox_ResultPrinter;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_AssertionFailedError;

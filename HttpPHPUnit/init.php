@@ -2,6 +2,7 @@
 
 use HttpPHPUnit\Main;
 
+require_once __DIR__ . '/xnette.php';
 require_once __DIR__ . '/Main/Main.php';
 
 set_time_limit(0);

@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Object;
+use XNette\Object;
 use Exception;
 use ReflectionProperty;
 

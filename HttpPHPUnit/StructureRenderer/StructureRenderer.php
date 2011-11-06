@@ -2,9 +2,9 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Application\UI\Control;
-use Nette\DirectoryNotFoundException;
-use Nette\Utils\Finder;
+use XNette\Application\UI\Control;
+use XNette\DirectoryNotFoundException;
+use XNette\Utils\Finder;
 
 /**
  * @author Petr Prochazka
