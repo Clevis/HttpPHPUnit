@@ -2,14 +2,14 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Application\UI\Control;
+use Nette\Object;
 use Nette\DirectoryNotFoundException;
 use Nette\Utils\Finder;
 
 /**
  * @author Petr Prochazka
  */
-class StructureRenderer extends Control
+class StructureRenderer extends Object
 {
 	/** @var string dir */
 	private $dir;
@@ -19,6 +19,9 @@ class StructureRenderer extends Control
 
 	/** @var NULL|string */
 	private $method = NULL;
+
+	/** Nette\Templating\FileTemplate */
+	private $template;
 
 	/**
 	 * @param string
@@ -38,6 +41,7 @@ class StructureRenderer extends Control
 		{
 			throw new DirectoryNotFoundException($dir);
 		}
+		$this->template = TemplateFactory::create(__DIR__ . '/StructureRenderer.latte');
 	}
 
 	public function render()
@@ -83,9 +87,7 @@ class StructureRenderer extends Control
 		}
 
 		$this->template->isAll = ($isAll AND $this->open !== false);
-		$this->template->basePath = TemplateFactory::getBasePath();
 		$this->template->structure = $structure->structure;
-		$this->template->setFile(__DIR__ . '/StructureRenderer.latte');
 		$this->template->render();
 	}
 
