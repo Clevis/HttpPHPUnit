@@ -2,19 +2,23 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Application\UI\Control;
+use Nette\Object;
+use Nette\Templating\FileTemplate;
+use Nette\Latte\Engine;
 use Exception;
 
 /**
  * @author Petr Prochazka
  */
-class TemplateFactory extends Control
+class TemplateFactory extends Object
 {
 	public static function create($file)
 	{
-		$control = new self;
-		$template = $control->getTemplate();
-		$template->control = NULL;
+		$template = new FileTemplate;
+		$template->onPrepareFilters[] = function ($template) {
+			$template->registerFilter(new Engine);
+		};
+		$template->registerHelperLoader('Nette\Templating\Helpers::loader');
 		$template->setFile($file);
 		$template->basePath = self::getBasePath();
 		return $template;
