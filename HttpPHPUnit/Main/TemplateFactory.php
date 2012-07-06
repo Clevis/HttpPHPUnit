@@ -22,13 +22,12 @@ class TemplateFactory extends Control
 
 	public static function getBasePath()
 	{
-		$dir = realpath(__DIR__ . '/..');
-		$documentRoot = realpath($_SERVER['DOCUMENT_ROOT']);
-		if (!$documentRoot) throw new Exception;
-		$documentRoot = rtrim($documentRoot, DIRECTORY_SEPARATOR);
-		$tmp = $documentRoot . DIRECTORY_SEPARATOR;
-		if ($documentRoot != $dir AND strncmp($dir, $tmp, strlen($tmp)) !== 0) throw new Exception;
-		return str_replace('\\', '/', substr($dir, strlen($documentRoot)));
+		$dir = str_replace('\\', '/', realpath(__DIR__ . '/..')); // <== even Windows will have /
+		$self = $_SERVER['PHP_SELF']; // e.g. /Ticketon/tests/index.php or /Clevis/Ticketon/tests/index.php
+		$pathToHttpPHPUnitRoot = substr($self, 0, -9); // e.g. /Ticketon/tests/ or /Clevis/Ticketon/tests/
+		$positionOfHttpPHPUnitRoot = strrpos($dir, $pathToHttpPHPUnitRoot);
+
+		return substr($dir, $positionOfHttpPHPUnitRoot); // e.g. /Ticketon/tests/libs/HttpPHPUnit or /Clevis/Ticketon/tests/libs/HttpPHPUnit
 	}
 
 }
