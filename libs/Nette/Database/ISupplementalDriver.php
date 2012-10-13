@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -22,6 +22,9 @@ use Nette;
  */
 interface ISupplementalDriver
 {
+	const SUPPORT_COLUMNS_META = 'meta',
+		SUPPORT_SEQUENCE = 'sequence',
+		SUPPORT_SELECT_UNGROUPED_COLUMNS = 'ungrouped_cols';
 
 	/**
 	 * Delimites identifier for use in a SQL statement.
@@ -32,7 +35,7 @@ interface ISupplementalDriver
 
 	/**
 	 * Formats date-time for use in a SQL statement.
-	 * @param  DateTime
+	 * @param  \DateTime
 	 * @return string
 	 */
 	function formatDateTime(\DateTime $value);
@@ -61,5 +64,42 @@ interface ISupplementalDriver
 	 * @return array
 	 */
 	function normalizeRow($row, $statement);
+
+
+	/********************* reflection ****************d*g**/
+
+
+	/**
+	 * Returns list of tables.
+	 * @return array of [name [, (bool) view]]
+	 */
+	function getTables();
+
+	/**
+	 * Returns metadata for all columns in a table.
+	 * @param  string
+	 * @return array of [name, nativetype [, table, fullname, (int) size, (bool) nullable, (mixed) default, (bool) autoincrement, (array) vendor]]
+	 */
+	function getColumns($table);
+
+	/**
+	 * Returns metadata for all indexes in a table.
+	 * @param  string
+	 * @return array of [name, (array of names) columns [, (bool) unique, (bool) primary]]
+	 */
+	function getIndexes($table);
+
+	/**
+	 * Returns metadata for all foreign keys in a table.
+	 * @param  string
+	 * @return array
+	 */
+	function getForeignKeys($table);
+
+	/**
+	 * Cheks if driver supports specific property
+	 * @return bool
+	 */
+	function isSupported($item);
 
 }

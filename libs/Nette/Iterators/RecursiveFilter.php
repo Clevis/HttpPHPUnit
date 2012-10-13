@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -22,30 +22,25 @@ use Nette;
  */
 class RecursiveFilter extends \FilterIterator implements \RecursiveIterator
 {
-	/** @var callback */
+	/** @var callable */
 	private $callback;
 
-	/** @var callback */
+	/** @var callable */
 	private $childrenCallback;
 
 
-	/**
-	 * Constructs a filter around another iterator.
-	 * @param
-	 * @param  callback
-	 */
 	public function __construct(\RecursiveIterator $iterator, $callback, $childrenCallback = NULL)
 	{
 		parent::__construct($iterator);
-		$this->callback = $callback;
-		$this->childrenCallback = $childrenCallback;
+		$this->callback = $callback === NULL ? NULL : new Nette\Callback($callback);
+		$this->childrenCallback = $childrenCallback === NULL ? NULL : new Nette\Callback($childrenCallback);
 	}
 
 
 
 	public function accept()
 	{
-		return $this->callback === NULL || call_user_func($this->callback, $this);
+		return $this->callback === NULL || $this->callback->invoke($this);
 	}
 
 
@@ -53,7 +48,7 @@ class RecursiveFilter extends \FilterIterator implements \RecursiveIterator
 	public function hasChildren()
 	{
 		return $this->getInnerIterator()->hasChildren()
-			&& ($this->childrenCallback === NULL || call_user_func($this->childrenCallback, $this));
+			&& ($this->childrenCallback === NULL || $this->childrenCallback->invoke($this));
 	}
 
 

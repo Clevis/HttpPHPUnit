@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -39,17 +39,14 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 
 
 
-	public static function initialize(Nette\Application\Application $application, Nette\Http\IRequest $httpRequest)
+	public static function initializePanel(Nette\Application\Application $application)
 	{
-		Debugger::$bar->addPanel(new self($application->getRouter(), $httpRequest));
 		Debugger::$blueScreen->addPanel(function($e) use ($application) {
-			if ($e === NULL) {
-				return array(
-					'tab' => 'Nette Application',
-					'panel' => '<h3>Requests</h3>' . Nette\Diagnostics\Helpers::clickableDump($application->getRequests())
-						. '<h3>Presenter</h3>' . Nette\Diagnostics\Helpers::clickableDump($application->getPresenter())
-				);
-			}
+			return $e ? NULL : array(
+				'tab' => 'Nette Application',
+				'panel' => '<h3>Requests</h3>' . Nette\Diagnostics\Helpers::clickableDump($application->getRequests())
+					. '<h3>Presenter</h3>' . Nette\Diagnostics\Helpers::clickableDump($application->getPresenter())
+			);
 		});
 	}
 
@@ -95,20 +92,24 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @param  Nette\Application\IRouter
 	 * @return void
 	 */
-	private function analyse($router)
+	private function analyse($router, $module = '')
 	{
 		if ($router instanceof Routers\RouteList) {
 			foreach ($router as $subRouter) {
-				$this->analyse($subRouter);
+				$this->analyse($subRouter, $module . $router->getModule());
 			}
 			return;
 		}
 
+		$matched = 'no';
 		$request = $router->match($this->httpRequest);
-		$matched = $request === NULL ? 'no' : 'may';
-		if ($request !== NULL && empty($this->request)) {
-			$this->request = $request;
-			$matched = 'yes';
+		if ($request) {
+			$request->setPresenterName($module . $request->getPresenterName());
+			$matched = 'may';
+			if (empty($this->request)) {
+				$this->request = $request;
+				$matched = 'yes';
+			}
 		}
 
 		$this->routers[] = array(
@@ -117,6 +118,7 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 			'defaults' => $router instanceof Routers\Route || $router instanceof Routers\SimpleRouter ? $router->getDefaults() : array(),
 			'mask' => $router instanceof Routers\Route ? $router->getMask() : NULL,
 			'request' => $request,
+			'module' => rtrim($module, ':')
 		);
 	}
 

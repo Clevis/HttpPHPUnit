@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -67,8 +67,7 @@ class SmtpMailer extends Nette\Object implements IMailer
 
 	/**
 	 * Sends email.
-	 * @param	Message
-	 * @return	void
+	 * @return void
 	 */
 	public function send(Message $mail)
 	{
@@ -129,6 +128,7 @@ class SmtpMailer extends Nette\Object implements IMailer
 			if (!stream_socket_enable_crypto($this->connection, TRUE, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
 				throw new SmtpException('Unable to connect via TLS.');
 			}
+			$this->write("EHLO $self", 250);
 		}
 
 		if ($this->username != NULL && $this->password != NULL) {

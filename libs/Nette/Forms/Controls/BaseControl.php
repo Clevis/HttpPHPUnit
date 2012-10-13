@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -25,20 +25,22 @@ use Nette,
  * @author     David Grudl
  *
  * @property-read Nette\Forms\Form $form
- * @property-read mixed $control
- * @property-read mixed $label
  * @property-read string $htmlName
  * @property   string $htmlId
  * @property-read array $options
- * @property   Nette\Localization\ITranslator $translator
+ * @property   Nette\Localization\ITranslator|NULL $translator
  * @property   mixed $value
+ * @property-read bool $filled
+ * @property-write $defaultValue
+ * @property   bool $disabled
+ * @property-read Nette\Utils\Html $control
+ * @property-read Nette\Utils\Html $label
  * @property-read Nette\Utils\Html $controlPrototype
  * @property-read Nette\Utils\Html $labelPrototype
  * @property-read Nette\Forms\Rules $rules
- * @property-read array $errors
- * @property   bool $disabled
  * @property   bool $required
-*/
+ * @property-read array $errors
+ */
 abstract class BaseControl extends Nette\ComponentModel\Component implements IControl
 {
 	/** @var string */
@@ -188,6 +190,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 
 	/**
 	 * Sets user-specific option.
+	 * Options recognized by DefaultFormRenderer
+	 * - 'description' - textual or Html object description
+	 *
 	 * @param  string key
 	 * @param  mixed  value
 	 * @return BaseControl  provides a fluent interface
@@ -235,7 +240,6 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 
 	/**
 	 * Sets translate adapter.
-	 * @param  Nette\Localization\ITranslator
 	 * @return BaseControl  provides a fluent interface
 	 */
 	public function setTranslator(Nette\Localization\ITranslator $translator = NULL)
@@ -336,7 +340,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	public function loadHttpData()
 	{
 		$path = explode('[', strtr(str_replace(array('[]', ']'), '', $this->getHtmlName()), '.', '_'));
-		$this->setValue(Nette\Utils\Arrays::get($this->getForm()->getHttpData(), $path));
+		$this->setValue(Nette\Utils\Arrays::get($this->getForm()->getHttpData(), $path, NULL));
 	}
 
 
@@ -384,9 +388,9 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 		$control->required = $this->isRequired();
 
 		$rules = self::exportRules($this->rules);
-		$rules = substr(json_encode($rules), 1, -1);
-		$rules = preg_replace('#"([a-z0-9]+)":#i', '$1:', $rules);
-		$rules = preg_replace('#(?<!\\\\)"([^\\\\\',]*)"#i', "'$1'", $rules);
+		$rules = substr(PHP_VERSION_ID >= 50400 ? json_encode($rules, JSON_UNESCAPED_UNICODE) : json_encode($rules), 1, -1);
+		$rules = preg_replace('#"([a-z0-9_]+)":#i', '$1:', $rules);
+		$rules = preg_replace('#(?<!\\\\)"(?!:[^a-z])([^\\\\\',]*)"#i', "'$1'", $rules);
 		$control->data('nette-rules', $rules ? $rules : NULL);
 
 		return $control;
@@ -526,12 +530,12 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 	/**
 	 * @return array
 	 */
-	private static function exportRules($rules)
+	protected static function exportRules($rules)
 	{
 		$payload = array();
 		foreach ($rules as $rule) {
 			if (!is_string($op = $rule->operation)) {
-				$op = callback($op);
+				$op = new Nette\Callback($op);
 				if (!$op->isStatic()) {
 					continue;
 				}
@@ -604,7 +608,6 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
 
 	/**
 	 * Valid validator: is control valid?
-	 * @param  Nette\Forms\IControl
 	 * @return bool
 	 */
 	public static function validateValid(IControl $control)

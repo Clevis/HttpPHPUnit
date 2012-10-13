@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -21,9 +21,10 @@ use Nette,
  *
  * @author     David Grudl
  *
- * @property   string $encoding
- * @property   string $body
  * @property-read array $headers
+ * @property-write $contentType
+ * @property   string $encoding
+ * @property   mixed $body
  */
 class MimePart extends Nette\Object
 {
@@ -72,19 +73,15 @@ class MimePart extends Nette\Object
 				$tmp = array();
 			}
 
-			foreach ($value as $email => $name) {
-				if ($name !== NULL && !Strings::checkEncoding($name)) {
-					throw new Nette\InvalidArgumentException("Name is not valid UTF-8 string.");
+			foreach ($value as $email => $recipient) {
+				if ($recipient !== NULL && !Strings::checkEncoding($recipient)) {
+					Nette\Utils\Validators::assert($recipient, 'unicode', "header '$name'");
 				}
-
-				if (!preg_match('#^[^@",\s]+@[^@",\s]+\.[a-z]{2,10}$#i', $email)) {
-					throw new Nette\InvalidArgumentException("Email address '$email' is not valid.");
-				}
-
-				if (preg_match('#[\r\n]#', $name)) {
+				if (preg_match('#[\r\n]#', $recipient)) {
 					throw new Nette\InvalidArgumentException("Name must not contain line separator.");
 				}
-				$tmp[$email] = $name;
+				Nette\Utils\Validators::assert($email, 'email', "header '$name'");
+				$tmp[$email] = $recipient;
 			}
 
 		} else {
@@ -157,6 +154,10 @@ class MimePart extends Nette\Object
 			}
 			return substr($s, 0, -1); // last comma
 
+		} elseif (preg_match('#^(\S+; (?:file)?name=)"(.*)"$#', $this->headers[$name], $m)) { // Content-Disposition
+			$offset += strlen($m[1]);
+			return $m[1] . '"' . self::encodeHeader($m[2], $offset) . '"';
+
 		} else {
 			return self::encodeHeader($this->headers[$name], $offset);
 		}
@@ -215,7 +216,6 @@ class MimePart extends Nette\Object
 
 	/**
 	 * Adds or creates new multipart.
-	 * @param  MimePart
 	 * @return MimePart
 	 */
 	public function addPart(MimePart $part = NULL)
@@ -354,4 +354,38 @@ class MimePart extends Nette\Object
 	 * Converts a 8 bit string to a quoted-printable string.
 	 * @param  string
 	 * @return string
-	 */}
+	 *//*5.2*
+	public static function encodeQuotedPrintable($s)
+	{
+		$range = '!"#$%&\'()*+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}'; // \x21-\x7E without \x3D
+		$pos = 0;
+		$len = 0;
+		$o = '';
+		$size = strlen($s);
+		while ($pos < $size) {
+			if ($l = strspn($s, $range, $pos)) {
+				while ($len + $l > self::LINE_LENGTH - 1) { // 1 = length of suffix =
+					$lx = self::LINE_LENGTH - $len - 1;
+					$o .= substr($s, $pos, $lx) . '=' . self::EOL;
+					$pos += $lx;
+					$l -= $lx;
+					$len = 0;
+				}
+				$o .= substr($s, $pos, $l);
+				$len += $l;
+				$pos += $l;
+
+			} else {
+				$len += 3;
+				if ($len > self::LINE_LENGTH - 1) {
+					$o .= '=' . self::EOL;
+					$len = 3;
+				}
+				$o .= '=' . strtoupper(bin2hex($s[$pos]));
+				$pos++;
+			}
+		}
+		return rtrim($o, '=' . self::EOL);
+	}*/
+
+}

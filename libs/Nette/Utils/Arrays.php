@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -47,6 +47,9 @@ final class Arrays
 			if (is_array($arr) && array_key_exists($k, $arr)) {
 				$arr = $arr[$k];
 			} else {
+				if (func_num_args() < 3) {
+					throw new Nette\InvalidArgumentException("Missing item '$k'.");
+				}
 				return $default;
 			}
 		}
@@ -159,7 +162,7 @@ final class Arrays
 
 
 	/**
-	 * Return array entries that match the pattern.
+	 * Returns array entries that match the pattern.
 	 * @param  array
 	 * @param  string
 	 * @param  int
@@ -169,7 +172,23 @@ final class Arrays
 	{
 		Nette\Diagnostics\Debugger::tryError();
 		$res = preg_grep($pattern, $arr, $flags);
-		Strings::catchPregError($pattern);
+		if (Nette\Diagnostics\Debugger::catchError($e) || preg_last_error()) { // compile error XOR run-time error
+			throw new RegexpException($e ? $e->getMessage() : NULL, $e ? NULL : preg_last_error(), $pattern);
+		}
+		return $res;
+	}
+
+
+
+	/**
+	 * Returns flattened array.
+	 * @param  array
+	 * @return array
+	 */
+	public static function flatten(array $arr)
+	{
+		$res = array();
+		array_walk_recursive($arr, function($a) use (& $res) { $res[] = $a; });
 		return $res;
 	}
 

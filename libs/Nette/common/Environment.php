@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -19,6 +19,7 @@ use Nette;
  * Nette environment and configuration.
  *
  * @author     David Grudl
+ * @deprecated
  */
 final class Environment
 {
@@ -27,10 +28,13 @@ final class Environment
 		PRODUCTION = 'production',
 		CONSOLE = 'console';
 
-	/** @var Nette\Configurator */
-	private static $configurator;
+	/** @var bool */
+	private static $productionMode;
 
-	/** @var Nette\DI\IContainer */
+	/** @var string */
+	private static $createdAt;
+
+	/** @var Nette\DI\Container */
 	private static $context;
 
 
@@ -45,32 +49,6 @@ final class Environment
 
 
 
-	/**
-	 * Sets "class behind Environment" configurator.
-	 * @param  Nette\Configurator
-	 * @return void
-	 */
-	public static function setConfigurator(Configurator $configurator)
-	{
-		self::$configurator = $configurator;
-	}
-
-
-
-	/**
-	 * Gets "class behind Environment" configurator.
-	 * @return Nette\Configurator
-	 */
-	public static function getConfigurator()
-	{
-		if (self::$configurator === NULL) {
-			self::$configurator = Configurator::$instance ?: new Configurator;
-		}
-		return self::$configurator;
-	}
-
-
-
 	/********************* environment modes ****************d*g**/
 
 
@@ -81,7 +59,7 @@ final class Environment
 	 */
 	public static function isConsole()
 	{
-		return self::getContext()->params['consoleMode'];
+		return PHP_SAPI === 'cli';
 	}
 
 
@@ -92,7 +70,10 @@ final class Environment
 	 */
 	public static function isProduction()
 	{
-		return self::getContext()->params['productionMode'];
+		if (self::$productionMode === NULL) {
+			self::$productionMode = !Nette\Config\Configurator::detectDebugMode();
+		}
+		return self::$productionMode;
 	}
 
 
@@ -104,7 +85,7 @@ final class Environment
 	 */
 	public static function setProductionMode($value = TRUE)
 	{
-		self::getContext()->params['productionMode'] = (bool) $value;
+		self::$productionMode = (bool) $value;
 	}
 
 
@@ -125,7 +106,7 @@ final class Environment
 		if ($expand && is_string($value)) {
 			$value = self::getContext()->expand($value);
 		}
-		self::getContext()->params[$name] = $value;
+		self::getContext()->parameters[$name] = $value;
 	}
 
 
@@ -139,8 +120,8 @@ final class Environment
 	 */
 	public static function getVariable($name, $default = NULL)
 	{
-		if (isset(self::getContext()->params[$name])) {
-			return self::getContext()->params[$name];
+		if (isset(self::getContext()->parameters[$name])) {
+			return self::getContext()->parameters[$name];
 		} elseif (func_num_args() > 1) {
 			return $default;
 		} else {
@@ -156,7 +137,7 @@ final class Environment
 	 */
 	public static function getVariables()
 	{
-		return self::getContext()->params;
+		return self::getContext()->parameters;
 	}
 
 
@@ -182,8 +163,11 @@ final class Environment
 	 * Sets initial instance of context.
 	 * @return void
 	 */
-	public static function setContext(DI\IContainer $context)
+	public static function setContext(DI\Container $context)
 	{
+		if (self::$createdAt) {
+			throw new Nette\InvalidStateException('Configurator & SystemContainer has already been created automatically by Nette\Environment at ' . self::$createdAt);
+		}
 		self::$context = $context;
 	}
 
@@ -191,12 +175,12 @@ final class Environment
 
 	/**
 	 * Get initial instance of context.
-	 * @return Nette\DI\IContainer
+	 * @return \SystemContainer|Nette\DI\Container
 	 */
 	public static function getContext()
 	{
 		if (self::$context === NULL) {
-			self::$context = self::getConfigurator()->getContainer();
+			self::loadConfig();
 		}
 		return self::$context;
 	}
@@ -237,7 +221,7 @@ final class Environment
 	 */
 	public static function getHttpRequest()
 	{
-		return self::getContext()->httpRequest;
+		return self::getContext()->getByType('Nette\Http\IRequest');
 	}
 
 
@@ -247,7 +231,7 @@ final class Environment
 	 */
 	public static function getHttpContext()
 	{
-		return self::getContext()->httpContext;
+		return self::getContext()->getByType('Nette\Http\Context');
 	}
 
 
@@ -257,7 +241,7 @@ final class Environment
 	 */
 	public static function getHttpResponse()
 	{
-		return self::getContext()->httpResponse;
+		return self::getContext()->getByType('Nette\Http\IResponse');
 	}
 
 
@@ -267,17 +251,17 @@ final class Environment
 	 */
 	public static function getApplication()
 	{
-		return self::getContext()->application;
+		return self::getContext()->getByType('Nette\Application\Application');
 	}
 
 
 
 	/**
-	 * @return Nette\Http\User
+	 * @return Nette\Security\User
 	 */
 	public static function getUser()
 	{
-		return self::getContext()->user;
+		return self::getContext()->getByType('Nette\Security\User');
 	}
 
 
@@ -287,7 +271,7 @@ final class Environment
 	 */
 	public static function getRobotLoader()
 	{
-		return self::getContext()->robotLoader;
+		return self::getContext()->getByType('Nette\Loaders\RobotLoader');
 	}
 
 
@@ -316,7 +300,7 @@ final class Environment
 	{
 		return $namespace === NULL
 			? self::getContext()->session
-			: self::getContext()->session->getNamespace($namespace);
+			: self::getContext()->session->getSection($namespace);
 	}
 
 
@@ -333,8 +317,26 @@ final class Environment
 	 */
 	public static function loadConfig($file = NULL, $section = NULL)
 	{
-		self::getConfigurator()->loadConfig($file, $section);
-		return self::getContext()->params;
+		if (self::$createdAt) {
+			throw new Nette\InvalidStateException('Nette\Config\Configurator has already been created automatically by Nette\Environment at ' . self::$createdAt);
+		}
+		$configurator = new Nette\Config\Configurator;
+		$configurator
+			->setDebugMode(!self::isProduction())
+			->setTempDirectory(defined('TEMP_DIR') ? TEMP_DIR : '');
+		if ($file) {
+			$configurator->addConfig($file, $section);
+		}
+		self::$context = $configurator->createContainer();
+
+		self::$createdAt = '?';
+		foreach (/*5.2*PHP_VERSION_ID < 50205 ? debug_backtrace() : */debug_backtrace(FALSE) as $row) {
+			if (isset($row['file']) && is_file($row['file']) && strpos($row['file'], NETTE_DIR . DIRECTORY_SEPARATOR) !== 0) {
+				self::$createdAt = "$row[file]:$row[line]";
+				break;
+			}
+		}
+		return self::getConfig();
 	}
 
 
@@ -347,7 +349,7 @@ final class Environment
 	 */
 	public static function getConfig($key = NULL, $default = NULL)
 	{
-		$params = self::getContext()->params;
+		$params = Nette\ArrayHash::from(self::getContext()->parameters);
 		if (func_num_args()) {
 			return isset($params[$key]) ? $params[$key] : $default;
 		} else {

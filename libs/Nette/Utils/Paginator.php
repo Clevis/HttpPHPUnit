@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -22,16 +22,16 @@ use Nette;
  *
  * @property   int $page
  * @property-read int $firstPage
- * @property-read int $lastPage
+ * @property-read int|NULL $lastPage
  * @property   int $base
- * @property-read int $pageCount
- * @property   int $itemsPerPage
- * @property   int $itemCount
- * @property-read int $offset
- * @property-read int $countdownOffset
- * @property-read int $length
  * @property-read bool $first
  * @property-read bool $last
+ * @property-read int|NULL $pageCount
+ * @property   int $itemsPerPage
+ * @property   int|NULL $itemCount
+ * @property-read int $offset
+ * @property-read int|NULL $countdownOffset
+ * @property-read int|NULL $length
  */
 class Paginator extends Nette\Object
 {
