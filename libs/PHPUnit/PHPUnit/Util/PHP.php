@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2012, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 3.4.0
  */
@@ -49,20 +49,17 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 3.5.14
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 3.4.0
  */
 abstract class PHPUnit_Util_PHP
 {
     /**
-     * Path to the PHP interpreter that is to be used.
-     *
-     * @var    string $phpBinary
+     * @var string $phpBinary
      */
-    protected static $phpBinary = NULL;
+    protected $phpBinary;
 
     /**
      * Returns the path to a PHP interpreter.
@@ -72,48 +69,69 @@ abstract class PHPUnit_Util_PHP
      *
      * When not set, the following assumptions will be made:
      *
-     *   1. When the PHP CLI/CGI binary configured with the PEAR Installer
-     *      (php_bin configuration value) is readable, it will be used.
-     *
-     *   2. When PHPUnit is run using the CLI SAPI and the $_SERVER['_']
+     *   1. When PHPUnit is run using the CLI SAPI and the $_SERVER['_']
      *      variable does not contain the string "PHPUnit", $_SERVER['_']
      *      is assumed to contain the path to the current PHP interpreter
      *      and that will be used.
      *
-     *   3. When PHPUnit is run using the CLI SAPI and the $_SERVER['_']
+     *   2. When PHPUnit is run using the CLI SAPI and the $_SERVER['_']
      *      variable contains the string "PHPUnit", the file that $_SERVER['_']
      *      points to is assumed to be the PHPUnit TextUI CLI wrapper script
      *      "phpunit" and the binary set up using #! on that file's first
      *      line of code is assumed to contain the path to the current PHP
      *      interpreter and that will be used.
      *
+     *   3. When the PHP CLI/CGI binary configured with the PEAR Installer
+     *      (php_bin configuration value) is readable, it will be used.
+     *
      *   4. The current PHP interpreter is assumed to be in the $PATH and
      *      to be invokable through "php".
      *
      * @return string
      */
-    public static function getPhpBinary()
+    protected function getPhpBinary()
     {
-        if (self::$phpBinary === NULL) {
-            if (is_readable('@php_bin@')) {
-                self::$phpBinary = '@php_bin@';
+        if ($this->phpBinary === NULL) {
+            if (defined("PHP_BINARY")) {
+                $this->phpBinary = PHP_BINARY;
+            } else if (PHP_SAPI == 'cli' && isset($_SERVER['_'])) {
+                if (strpos($_SERVER['_'], 'phpunit') !== FALSE) {
+                    $file = file($_SERVER['_']);
+
+                    if (strpos($file[0], ' ') !== FALSE) {
+                        $tmp = explode(' ', $file[0]);
+                        $this->phpBinary = trim($tmp[1]);
+                    } else {
+                        $this->phpBinary = ltrim(trim($file[0]), '#!');
+                    }
+                } else if (strpos(basename($_SERVER['_']), 'php') !== FALSE) {
+                    $this->phpBinary = $_SERVER['_'];
+                }
             }
 
-            else if (PHP_SAPI == 'cli' && isset($_SERVER['_']) &&
-                     strpos($_SERVER['_'], 'phpunit') !== FALSE) {
-                $file            = file($_SERVER['_']);
-                $tmp             = explode(' ', $file[0]);
-                self::$phpBinary = trim($tmp[1]);
+            if ($this->phpBinary === NULL) {
+                $possibleBinaryLocations = array(
+                    PHP_BINDIR . '/php',
+                    PHP_BINDIR . '/php-cli.exe',
+                    PHP_BINDIR . '/php.exe',
+                    '@php_bin@',
+                );
+                foreach ($possibleBinaryLocations as $binary) {
+                    if (is_readable($binary)) {
+                        $this->phpBinary = $binary;
+                        break;
+                    }
+                }
             }
 
-            if (!is_readable(self::$phpBinary)) {
-                self::$phpBinary = 'php';
+            if (!is_readable($this->phpBinary)) {
+                $this->phpBinary = 'php';
             } else {
-                self::$phpBinary = escapeshellarg(self::$phpBinary);
+                $this->phpBinary = escapeshellcmd($this->phpBinary);
             }
         }
 
-        return self::$phpBinary;
+        return $this->phpBinary;
     }
 
     /**
@@ -141,7 +159,7 @@ abstract class PHPUnit_Util_PHP
     public function runJob($job, PHPUnit_Framework_Test $test = NULL, PHPUnit_Framework_TestResult $result = NULL)
     {
         $process = proc_open(
-          self::getPhpBinary(),
+          $this->getPhpBinary(),
           array(
             0 => array('pipe', 'r'),
             1 => array('pipe', 'w'),
@@ -208,10 +226,24 @@ abstract class PHPUnit_Util_PHP
             $time = 0;
             $result->addError(
               $test,
-              new RuntimeException(trim($stderr)), $time
+              new PHPUnit_Framework_Exception(trim($stderr)), $time
             );
         } else {
-            $childResult = @unserialize($stdout);
+            set_error_handler(function($errno, $errstr, $errfile, $errline) {
+                throw new ErrorException($errstr, $errno, $errno, $errfile, $errline);
+            });
+            try {
+                $childResult = unserialize($stdout);
+                restore_error_handler();
+            } catch (ErrorException $e) {
+                restore_error_handler();
+                $childResult = FALSE;
+
+                $time = 0;
+                $result->addError(
+                  $test, new PHPUnit_Framework_Exception(trim($stdout), 0, $e), $time
+                );
+            }
 
             if ($childResult !== FALSE) {
                 if (!empty($childResult['output'])) {
@@ -224,14 +256,9 @@ abstract class PHPUnit_Util_PHP
                 $childResult = $childResult['result'];
 
                 if ($result->getCollectCodeCoverageInformation()) {
-                    $codeCoverageInformation = $childResult->getRawCodeCoverageInformation();
-
-                    if (isset($codeCoverageInformation[0]) &&
-                         is_array($codeCoverageInformation[0])) {
-                        $result->getCodeCoverage()->append(
-                          $codeCoverageInformation[0], $test
-                        );
-                    }
+                    $result->getCodeCoverage()->merge(
+                      $childResult->getCodeCoverage()
+                    );
                 }
 
                 $time           = $childResult->time();
@@ -242,36 +269,64 @@ abstract class PHPUnit_Util_PHP
 
                 if (!empty($notImplemented)) {
                     $result->addError(
-                      $test, $notImplemented[0]->thrownException(), $time
+                      $test, $this->getException($notImplemented[0]), $time
                     );
                 }
 
                 else if (!empty($skipped)) {
                     $result->addError(
-                      $test, $skipped[0]->thrownException(), $time
+                      $test, $this->getException($skipped[0]), $time
                     );
                 }
 
                 else if (!empty($errors)) {
                     $result->addError(
-                      $test, $errors[0]->thrownException(), $time
+                      $test, $this->getException($errors[0]), $time
                     );
                 }
 
                 else if (!empty($failures)) {
                     $result->addFailure(
-                      $test, $failures[0]->thrownException(), $time
+                      $test, $this->getException($failures[0]), $time
                     );
                 }
-            } else {
-                $time = 0;
-
-                $result->addError(
-                  $test, new RuntimeException(trim($stdout)), $time
-                );
             }
         }
 
         $result->endTest($test, $time);
+    }
+
+    /**
+     * Gets the thrown exception from a PHPUnit_Framework_TestFailure.
+     *
+     * @param PHPUnit_Framework_TestFailure $error
+     * @since Method available since Release 3.6.0
+     * @see   https://github.com/sebastianbergmann/phpunit/issues/74
+     */
+    protected function getException(PHPUnit_Framework_TestFailure $error)
+    {
+        $exception = $error->thrownException();
+
+        if ($exception instanceof __PHP_Incomplete_Class) {
+            $exceptionArray = array();
+            foreach ((array)$exception as $key => $value) {
+                $key = substr($key, strrpos($key, "\0") + 1);
+                $exceptionArray[$key] = $value;
+            }
+
+            $exception = new PHPUnit_Framework_SyntheticError(
+              sprintf(
+                '%s: %s',
+                $exceptionArray['_PHP_Incomplete_Class_Name'],
+                $exceptionArray['message']
+              ),
+              $exceptionArray['code'],
+              $exceptionArray['file'],
+              $exceptionArray['line'],
+              $exceptionArray['trace']
+            );
+        }
+
+        return $exception;
     }
 }
