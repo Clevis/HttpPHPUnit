@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -19,7 +19,6 @@ use Nette;
  * Rendering helpers for Debugger.
  *
  * @author     David Grudl
- * @internal
  */
 final class Helpers
 {
@@ -30,20 +29,19 @@ final class Helpers
 	 */
 	public static function editorLink($file, $line)
 	{
-		$dir = dirname(strtr($file, '/', DIRECTORY_SEPARATOR));
-		$base = isset($_SERVER['SCRIPT_FILENAME']) ? dirname(dirname(strtr($_SERVER['SCRIPT_FILENAME'], '/', DIRECTORY_SEPARATOR))) : dirname($dir);
-		if (substr($dir, 0, strlen($base)) === $base) {
-			$dir = '...' . substr($dir, strlen($base));
-		}
-
-		if (Debugger::$editor) {
-			$el = Nette\Utils\Html::el('a')
-				->href(strtr(Debugger::$editor, array('%file' => rawurlencode($file), '%line' => $line)));
+		if (Debugger::$editor && is_file($file)) {
+			$dir = dirname(strtr($file, '/', DIRECTORY_SEPARATOR));
+			$base = isset($_SERVER['SCRIPT_FILENAME']) ? dirname(dirname(strtr($_SERVER['SCRIPT_FILENAME'], '/', DIRECTORY_SEPARATOR))) : dirname($dir);
+			if (substr($dir, 0, strlen($base)) === $base) {
+				$dir = '...' . substr($dir, strlen($base));
+			}
+			return Nette\Utils\Html::el('a')
+				->href(strtr(Debugger::$editor, array('%file' => rawurlencode($file), '%line' => $line)))
+				->title("$file:$line")
+				->setHtml(htmlSpecialChars(rtrim($dir, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR . '<b>' . htmlSpecialChars(basename($file)) . '</b>');
 		} else {
-			$el = Nette\Utils\Html::el('span');
+			return Nette\Utils\Html::el('span')->setText($file);
 		}
-		return $el->title("$file:$line")
-			->setHtml(htmlSpecialChars(rtrim($dir, DIRECTORY_SEPARATOR)) . DIRECTORY_SEPARATOR . '<b>' . htmlSpecialChars(basename($file)) . '</b>');
 	}
 
 
@@ -75,33 +73,33 @@ final class Helpers
 		}
 
 		if (is_bool($var)) {
-			return ($var ? 'TRUE' : 'FALSE') . "\n";
+			return '<span class="php-bool">' . ($var ? 'TRUE' : 'FALSE') . "</span>\n";
 
 		} elseif ($var === NULL) {
-			return "NULL\n";
+			return "<span class=\"php-null\">NULL</span>\n";
 
 		} elseif (is_int($var)) {
-			return "$var\n";
+			return "<span class=\"php-int\">$var</span>\n";
 
 		} elseif (is_float($var)) {
 			$var = var_export($var, TRUE);
 			if (strpos($var, '.') === FALSE) {
 				$var .= '.0';
 			}
-			return "$var\n";
+			return "<span class=\"php-float\">$var</span>\n";
 
 		} elseif (is_string($var)) {
 			if (Debugger::$maxLen && strlen($var) > Debugger::$maxLen) {
-				$s = htmlSpecialChars(substr($var, 0, Debugger::$maxLen), ENT_NOQUOTES) . ' ... ';
+				$s = htmlSpecialChars(substr($var, 0, Debugger::$maxLen), ENT_NOQUOTES, 'ISO-8859-1') . ' ... ';
 			} else {
-				$s = htmlSpecialChars($var, ENT_NOQUOTES);
+				$s = htmlSpecialChars($var, ENT_NOQUOTES, 'ISO-8859-1');
 			}
 			$s = strtr($s, preg_match($reBinary, $s) || preg_last_error() ? $tableBin : $tableUtf);
 			$len = strlen($var);
-			return "\"$s\"" . ($len > 1 ? " ($len)" : "") . "\n";
+			return "<span class=\"php-string\">\"$s\"</span>" . ($len > 1 ? " ($len)" : "") . "\n";
 
 		} elseif (is_array($var)) {
-			$s = "<span>array</span>(" . count($var) . ") ";
+			$s = '<span class="php-array">array</span>(' . count($var) . ") ";
 			$space = str_repeat($space1 = '   ', $level);
 			$brackets = range(0, count($var) - 1) === array_keys($var) ? "[]" : "{}";
 
@@ -122,8 +120,9 @@ final class Helpers
 					if ($k === $marker) {
 						continue;
 					}
-					$k = is_int($k) ? $k : '"' . htmlSpecialChars(strtr($k, preg_match($reBinary, $k) || preg_last_error() ? $tableBin : $tableUtf)) . '"';
-					$s .= "$space$space1$k => " . self::htmlDump($v, $level + 1);
+					$k = strtr($k, preg_match($reBinary, $k) || preg_last_error() ? $tableBin : $tableUtf);
+					$k = htmlSpecialChars(preg_match('#^\w+$#', $k) ? $k : "\"$k\"");
+					$s .= "$space$space1<span class=\"php-key\">$k</span> => " . self::htmlDump($v, $level + 1);
 				}
 				unset($var[$marker]);
 				$s .= "$space$brackets[1]</code>";
@@ -134,8 +133,17 @@ final class Helpers
 			return $s . "\n";
 
 		} elseif (is_object($var)) {
-			$arr = (array) $var;
-			$s = "<span>" . get_class($var) . "</span>(" . count($arr) . ") ";
+			if ($var instanceof \Closure) {
+				$rc = new \ReflectionFunction($var);
+				$arr = array();
+				foreach ($rc->getParameters() as $param) {
+					$arr[] = '$' . $param->getName();
+				}
+				$arr = array('file' => $rc->getFileName(), 'line' => $rc->getStartLine(), 'parameters' => implode(', ', $arr));
+			} else {
+				$arr = (array) $var;
+			}
+			$s = '<span class="php-object">' . get_class($var) . "</span>(" . count($arr) . ") ";
 			$space = str_repeat($space1 = '   ', $level);
 
 			static $list = array();
@@ -144,17 +152,18 @@ final class Helpers
 			} elseif (in_array($var, $list, TRUE)) {
 				$s .= "{ *RECURSION* }";
 
-			} elseif ($level < Debugger::$maxDepth || !Debugger::$maxDepth) {
+			} elseif ($level < Debugger::$maxDepth || !Debugger::$maxDepth || $var instanceof \Closure) {
 				$s .= "<code>{\n";
 				$list[] = $var;
 				foreach ($arr as $k => &$v) {
 					$m = '';
 					if ($k[0] === "\x00") {
-						$m = $k[1] === '*' ? ' <span>protected</span>' : ' <span>private</span>';
+						$m = ' <span class="php-visibility">' . ($k[1] === '*' ? 'protected' : 'private') . '</span>';
 						$k = substr($k, strrpos($k, "\x00") + 1);
 					}
-					$k = htmlSpecialChars(strtr($k, preg_match($reBinary, $k) || preg_last_error() ? $tableBin : $tableUtf));
-					$s .= "$space$space1\"$k\"$m => " . self::htmlDump($v, $level + 1);
+					$k = strtr($k, preg_match($reBinary, $k) || preg_last_error() ? $tableBin : $tableUtf);
+					$k = htmlSpecialChars(preg_match('#^\w+$#', $k) ? $k : "\"$k\"");
+					$s .= "$space$space1<span class=\"php-key\">$k</span>$m => " . self::htmlDump($v, $level + 1);
 				}
 				array_pop($list);
 				$s .= "$space}</code>";
@@ -165,7 +174,19 @@ final class Helpers
 			return $s . "\n";
 
 		} elseif (is_resource($var)) {
-			return "<span>" . htmlSpecialChars(get_resource_type($var)) . " resource</span>\n";
+			$type = get_resource_type($var);
+			$s = '<span class="php-resource">' . htmlSpecialChars($type) . " resource</span> ";
+
+			static $info = array('stream' => 'stream_get_meta_data', 'curl' => 'curl_getinfo');
+			if (isset($info[$type])) {
+				$space = str_repeat($space1 = '   ', $level);
+				$s .= "<code>{\n";
+				foreach (call_user_func($info[$type], $var) as $k => $v) {
+					$s .= $space . $space1 . '<span class="php-key">' . htmlSpecialChars($k) . "</span> => " . self::htmlDump($v, $level + 1);
+				}
+				$s .= "$space}</code>";
+			}
+			return $s . "\n";
 
 		} else {
 			return "<span>unknown type</span>\n";
@@ -179,18 +200,34 @@ final class Helpers
 	 * @param  string
 	 * @return string
 	 */
-	public static function clickableDump($dump)
+	public static function clickableDump($dump, $collapsed = FALSE)
 	{
 		return '<pre class="nette-dump">' . preg_replace_callback(
-			'#^( *)((?>[^(]{1,200}))\((\d+)\) <code>#m',
-			function ($m) {
+			'#^( *)((?>[^(\r\n]{1,200}))\((\d+)\) <code>#m',
+			function($m) use ($collapsed) {
 				return "$m[1]<a href='#' rel='next'>$m[2]($m[3]) "
-					. (trim($m[1]) || $m[3] < 7
+					. (($m[1] || !$collapsed) && ($m[3] < 7)
 					? '<abbr>&#x25bc;</abbr> </a><code>'
 					: '<abbr>&#x25ba;</abbr> </a><code class="nette-collapsed">');
 			},
 			self::htmlDump($dump)
 		) . '</pre>';
+	}
+
+
+
+	public static function findTrace(array $trace, $method, & $index = NULL)
+	{
+		$m = explode('::', $method);
+		foreach ($trace as $i => $item) {
+			if (isset($item['function']) && $item['function'] === end($m)
+				&& isset($item['class']) === isset($m[1])
+				&& (!isset($item['class']) || $item['class'] === $m[0] || $m[0] === '*' || is_subclass_of($item['class'], $m[0]))
+			) {
+				$index = $i;
+				return $item;
+			}
+		}
 	}
 
 }

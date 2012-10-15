@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -22,6 +22,11 @@ use Nette;
  *
  * @copyright  Copyright (c) 2005, 2007 Zend Technologies USA Inc.
  * @author     David Grudl
+ *
+ * @property-read array $roles
+ * @property-read array $resources
+ * @property-read mixed $queriedRole
+ * @property-read mixed $queriedResource
  */
 class Permission extends Nette\Object implements IAuthorizator
 {
@@ -123,6 +128,17 @@ class Permission extends Nette\Object implements IAuthorizator
 		} elseif ($need && !isset($this->roles[$role])) {
 			throw new Nette\InvalidStateException("Role '$role' does not exist.");
 		}
+	}
+
+
+
+	/**
+	 * Returns all Roles.
+	 * @return array
+	 */
+	public function getRoles()
+	{
+		return array_keys($this->roles);
 	}
 
 
@@ -306,6 +322,17 @@ class Permission extends Nette\Object implements IAuthorizator
 
 
 	/**
+	 * Returns all Resources.
+	 * @return array
+	 */
+	public function getResources()
+	{
+		return array_keys($this->resources);
+	}
+
+
+
+	/**
 	 * Returns TRUE if $resource inherits from $inherit. If $onlyParents is TRUE,
 	 * then $resource must inherit directly from $inherit.
 	 *
@@ -411,7 +438,7 @@ class Permission extends Nette\Object implements IAuthorizator
 	 * @param  string|array|Permission::ALL  roles
 	 * @param  string|array|Permission::ALL  resources
 	 * @param  string|array|Permission::ALL  privileges
-	 * @param  callback    assertion
+	 * @param  callable    assertion
 	 * @return Permission  provides a fluent interface
 	 */
 	public function allow($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = NULL)
@@ -429,7 +456,7 @@ class Permission extends Nette\Object implements IAuthorizator
 	 * @param  string|array|Permission::ALL  roles
 	 * @param  string|array|Permission::ALL  resources
 	 * @param  string|array|Permission::ALL  privileges
-	 * @param  callback    assertion
+	 * @param  callable    assertion
 	 * @return Permission  provides a fluent interface
 	 */
 	public function deny($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = NULL)
@@ -479,7 +506,7 @@ class Permission extends Nette\Object implements IAuthorizator
 	 * @param  string|array|Permission::ALL  roles
 	 * @param  string|array|Permission::ALL  resources
 	 * @param  string|array|Permission::ALL  privileges
-	 * @param  callback    assertion
+	 * @param  callable    assertion
 	 * @throws Nette\InvalidStateException
 	 * @return Permission  provides a fluent interface
 	 */
@@ -521,7 +548,7 @@ class Permission extends Nette\Object implements IAuthorizator
 			$privileges = array($privileges);
 		}
 
-		$assertion = $assertion ? callback($assertion) : NULL;
+		$assertion = $assertion ? new Nette\Callback($assertion) : NULL;
 
 		if ($toAdd) { // add to the rules
 			foreach ($resources as $resource) {

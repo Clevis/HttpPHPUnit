@@ -10,6 +10,12 @@ use Exception;
  */
 class TemplateFactory extends Control
 {
+
+	public function templatePrepareFilters($template)
+	{
+		$template->registerFilter(new \Nette\Latte\Engine);
+	}
+
 	public static function create($file)
 	{
 		$control = new self;

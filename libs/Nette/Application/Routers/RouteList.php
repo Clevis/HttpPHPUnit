@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -19,6 +19,7 @@ use Nette;
  * The router broker.
  *
  * @author     David Grudl
+ * @property-read string $module
  */
 class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 {
@@ -39,7 +40,6 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 
 	/**
 	 * Maps HTTP request to a Request object.
-	 * @param  Nette\Http\IRequest
 	 * @return Nette\Application\Request|NULL
 	 */
 	public function match(Nette\Http\IRequest $httpRequest)
@@ -58,8 +58,6 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 
 	/**
 	 * Constructs absolute URL from Request object.
-	 * @param  Nette\Application\Request
-	 * @param  Nette\Http\Url
 	 * @return string|NULL
 	 */
 	public function constructUrl(Nette\Application\Request $appRequest, Nette\Http\Url $refUrl)
@@ -130,6 +128,16 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
 			throw new Nette\InvalidArgumentException("Argument must be IRouter descendant.");
 		}
 		parent::offsetSet($index, $route);
+	}
+
+
+
+	/**
+	 * @return string
+	 */
+	public function getModule()
+	{
+		return $this->module;
 	}
 
 }

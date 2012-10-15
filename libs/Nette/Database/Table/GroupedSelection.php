@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -17,42 +17,57 @@ use Nette;
 
 /**
  * Representation of filtered table grouped by some column.
- * Selector is based on the great library NotORM http://www.notorm.com written by Jakub Vrana.
+ * GroupedSelection is based on the great library NotORM http://www.notorm.com written by Jakub Vrana.
  *
  * @author     Jakub Vrana
+ * @author     Jan Skrasek
  */
 class GroupedSelection extends Selection
 {
 	/** @var Selection referenced table */
-	private $refTable;
+	protected $refTable;
 
 	/** @var string grouping column name */
-	private $column;
+	protected $column;
 
-	/** @var string */
-	private $delimitedColumn;
-
-	/** @var */
-	public $active;
+	/** @var int primary key */
+	protected $active;
 
 
 
-	public function __construct($name, Selection $refTable, $column)
+	/**
+	 * Creates filtered and grouped table representation.
+	 * @param  Selection  $refTable
+	 * @param  string  database table name
+	 * @param  string  joining column
+	 */
+	public function __construct(Selection $refTable, $table, $column)
 	{
-		parent::__construct($name, $refTable->connection);
+		parent::__construct($table, $refTable->connection);
 		$this->refTable = $refTable;
-		$this->through($column);
+		$this->column = $column;
 	}
 
 
 
 	/**
-	 * Specify referencing column.
-	 * @param  string
-	 * @return GroupedSelection provides a fluent interface
+	 * Sets active group.
+	 * @internal
+	 * @param  int  primary key of grouped rows
+	 * @return GroupedSelection
 	 */
+	public function setActive($active)
+	{
+		$this->active = $active;
+		return $this;
+	}
+
+
+
+	/** @deprecated */
 	public function through($column)
 	{
+		trigger_error(__METHOD__ . '() is deprecated; use ' . __CLASS__ . '::related("' . $this->name . '", "' . $column . '") instead.', E_USER_WARNING);
 		$this->column = $column;
 		$this->delimitedColumn = $this->refTable->connection->getSupplementalDriver()->delimite($this->column);
 		return $this;
@@ -62,9 +77,10 @@ class GroupedSelection extends Selection
 
 	public function select($columns)
 	{
-		if (!$this->select) {
-			$this->select[] = "$this->delimitedName.$this->delimitedColumn";
+		if (!$this->sqlBuilder->getSelect()) {
+			$this->sqlBuilder->addSelect("$this->name.$this->column");
 		}
+
 		return parent::select($columns);
 	}
 
@@ -72,71 +88,56 @@ class GroupedSelection extends Selection
 
 	public function order($columns)
 	{
-		if (!$this->order) { // improve index utilization
-			$this->order[] = "$this->delimitedName.$this->delimitedColumn"
-				. (preg_match('~\\bDESC$~i', $columns) ? ' DESC' : '');
+		if (!$this->sqlBuilder->getOrder()) {
+			// improve index utilization
+			$this->sqlBuilder->addOrder("$this->name.$this->column" . (preg_match('~\\bDESC$~i', $columns) ? ' DESC' : ''));
 		}
+
 		return parent::order($columns);
 	}
 
 
 
+	/********************* aggregations ****************d*g**/
+
+
+
 	public function aggregation($function)
 	{
-		$join = $this->createJoins(implode(',', $this->conditions), TRUE) + $this->createJoins($function);
-		$column = ($join ? "$this->table." : '') . $this->column;
-		$query = "SELECT $function, $this->delimitedColumn FROM $this->delimitedName" . implode($join);
-		if ($this->where) {
-			$query .= ' WHERE (' . implode(') AND (', $this->where) . ')';
-		}
-		$query .= " GROUP BY $this->delimitedColumn";
-		$aggregation = & $this->refTable->aggregation[$query];
+		$aggregation = & $this->getRefTable($refPath)->aggregation[$refPath . $function . $this->sqlBuilder->buildSelectQuery() . json_encode($this->sqlBuilder->getParameters())];
+
 		if ($aggregation === NULL) {
 			$aggregation = array();
-			foreach ($this->query($query, $this->parameters) as $row) {
+
+			$selection = $this->createSelectionInstance();
+			$selection->getSqlBuilder()->importConditions($this->getSqlBuilder());
+			$selection->select($function);
+			$selection->select("$this->name.$this->column");
+			$selection->group("$this->name.$this->column");
+
+			foreach ($selection as $row) {
 				$aggregation[$row[$this->column]] = $row;
 			}
 		}
 
-		foreach ($aggregation[$this->active] as $val) {
-			return $val;
+		if (isset($aggregation[$this->active])) {
+			foreach ($aggregation[$this->active] as $val) {
+				return $val;
+			}
 		}
 	}
 
 
 
-	public function insert($data)
+	public function count($column = NULL)
 	{
-		if ($data instanceof \Traversable && !$data instanceof Selection) {
-			$data = iterator_to_array($data);
-		}
-		if (is_array($data)) {
-			$data[$this->column] = $this->active;
-		}
-		return parent::insert($data);
+		$return = parent::count($column);
+		return isset($return) ? $return : 0;
 	}
 
 
 
-	public function update($data)
-	{
-		$where = $this->where;
-		$this->where[0] = "$this->delimitedColumn = " . $this->connection->quote($this->active);
-		$return = parent::update($data);
-		$this->where = $where;
-		return $return;
-	}
-
-
-
-	public function delete()
-	{
-		$where = $this->where;
-		$this->where[0] = "$this->delimitedColumn = " . $this->connection->quote($this->active);
-		$return = parent::delete();
-		$this->where = $where;
-		return $return;
-	}
+	/********************* internal ****************d*g**/
 
 
 
@@ -146,21 +147,28 @@ class GroupedSelection extends Selection
 			return;
 		}
 
-		$referencing = & $this->refTable->referencing[$this->getSql()];
-		if ($referencing === NULL) {
-			$limit = $this->limit;
+		$hash = md5($this->sqlBuilder->buildSelectQuery() . json_encode($this->sqlBuilder->getParameters()));
+
+		$referencing = & $this->getRefTable($refPath)->referencing[$refPath . $hash];
+		$this->rows = & $referencing['rows'];
+		$this->referenced = & $referencing['refs'];
+		$this->accessed = & $referencing['accessed'];
+		$refData = & $referencing['data'];
+
+		if ($refData === NULL) {
+			$limit = $this->sqlBuilder->getLimit();
 			$rows = count($this->refTable->rows);
-			if ($this->limit && $rows > 1) {
-				$this->limit = NULL;
+			if ($limit && $rows > 1) {
+				$this->sqlBuilder->setLimit(NULL, NULL);
 			}
 			parent::execute();
-			$this->limit = $limit;
-			$referencing = array();
+			$this->sqlBuilder->setLimit($limit, NULL);
+			$refData = array();
 			$offset = array();
 			foreach ($this->rows as $key => $row) {
-				$ref = & $referencing[$row[$this->column]];
+				$ref = & $refData[$row[$this->column]];
 				$skip = & $offset[$row[$this->column]];
-				if ($limit === NULL || $rows <= 1 || (count($ref) < $limit && $skip >= $this->offset)) {
+				if ($limit === NULL || $rows <= 1 || (count($ref) < $limit && $skip >= $this->sqlBuilder->getOffset())) {
 					$ref[$key] = $row;
 				} else {
 					unset($this->rows[$key]);
@@ -170,10 +178,80 @@ class GroupedSelection extends Selection
 			}
 		}
 
-		$this->data = & $referencing[$this->active];
+		$this->data = & $refData[$this->active];
 		if ($this->data === NULL) {
 			$this->data = array();
+		} else {
+			foreach ($this->data as $row) {
+				$row->setTable($this); // injects correct parent GroupedSelection
+			}
+			reset($this->data);
 		}
+	}
+
+
+
+	protected function getRefTable(& $refPath)
+	{
+		$refObj = $this->refTable;
+		$refPath = $this->name . '.';
+		while ($refObj instanceof GroupedSelection) {
+			$refPath .= $refObj->name . '.';
+			$refObj = $refObj->refTable;
+		}
+
+		return $refObj;
+	}
+
+
+
+	/********************* manipulation ****************d*g**/
+
+
+
+	public function insert($data)
+	{
+		if ($data instanceof \Traversable && !$data instanceof Selection) {
+			$data = iterator_to_array($data);
+		}
+
+		if (Nette\Utils\Validators::isList($data)) {
+			foreach (array_keys($data) as $key) {
+				$data[$key][$this->column] = $this->active;
+			}
+		} else {
+			$data[$this->column] = $this->active;
+		}
+
+		return parent::insert($data);
+	}
+
+
+
+	public function update($data)
+	{
+		$builder = $this->sqlBuilder;
+
+		$this->sqlBuilder = new SqlBuilder($this);
+		$this->where($this->column, $this->active);
+		$return = parent::update($data);
+
+		$this->sqlBuilder = $builder;
+		return $return;
+	}
+
+
+
+	public function delete()
+	{
+		$builder = $this->sqlBuilder;
+
+		$this->sqlBuilder = new SqlBuilder($this);
+		$this->where($this->column, $this->active);
+		$return = parent::delete();
+
+		$this->sqlBuilder = $builder;
+		return $return;
 	}
 
 }

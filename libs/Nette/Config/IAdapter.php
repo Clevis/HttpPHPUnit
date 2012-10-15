@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -28,14 +28,13 @@ interface IAdapter
 	 * @param  string  file name
 	 * @return array
 	 */
-	static function load($file);
+	function load($file);
 
 	/**
-	 * Writes configuration to file.
-	 * @param  Config to save
-	 * @param  string  file
-	 * @return void
+	 * Generates configuration string.
+	 * @param  array
+	 * @return string
 	 */
-	static function save($config, $file);
+	function dump(array $data);
 
 }

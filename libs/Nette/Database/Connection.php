@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -21,45 +21,49 @@ use Nette,
  * Represents a connection between PHP and a database server.
  *
  * @author     David Grudl
+ *
+ * @property       IReflection          $databaseReflection
+ * @property-read  ISupplementalDriver  $supplementalDriver
+ * @property-read  string               $dsn
  */
 class Connection extends PDO
 {
+	/** @var string */
+	private $dsn;
+
 	/** @var ISupplementalDriver */
 	private $driver;
 
 	/** @var SqlPreprocessor */
 	private $preprocessor;
 
-	/** @var Nette\Database\Reflection\DatabaseReflection */
-	public $databaseReflection;
+	/** @var IReflection */
+	private $databaseReflection;
 
 	/** @var Nette\Caching\Cache */
-	public $cache;
-
-	/** @var array */
-	public $substitutions = array();
+	private $cache;
 
 	/** @var array of function(Statement $result, $params); Occurs after query is executed */
 	public $onQuery;
 
 
 
-	public function __construct($dsn, $username = NULL, $password  = NULL, array $options = NULL)
+	public function __construct($dsn, $username = NULL, $password  = NULL, array $options = NULL, $driverClass = NULL)
 	{
-		parent::__construct($dsn, $username, $password, $options);
+		parent::__construct($this->dsn = $dsn, $username, $password, $options);
 		$this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		$this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('Nette\Database\Statement', array($this)));
 
-		$class = 'Nette\Database\Drivers\\' . $this->getAttribute(PDO::ATTR_DRIVER_NAME) . 'Driver';
-		if (class_exists($class)) {
-			$this->driver = new $class($this, (array) $options);
-		}
-
+		$driverClass = $driverClass ?: 'Nette\Database\Drivers\\' . ucfirst(str_replace('sql', 'Sql', $this->getAttribute(PDO::ATTR_DRIVER_NAME))) . 'Driver';
+		$this->driver = new $driverClass($this, (array) $options);
 		$this->preprocessor = new SqlPreprocessor($this);
+	}
 
-		$this->databaseReflection = new Reflection\DatabaseReflection; // TODO
 
-		Diagnostics\ConnectionPanel::initialize($this);
+
+	public function getDsn()
+	{
+		return $this->dsn;
 	}
 
 
@@ -68,6 +72,49 @@ class Connection extends PDO
 	public function getSupplementalDriver()
 	{
 		return $this->driver;
+	}
+
+
+
+	/**
+	 * Sets database reflection.
+	 * @return Connection   provides a fluent interface
+	 */
+	public function setDatabaseReflection(IReflection $databaseReflection)
+	{
+		$databaseReflection->setConnection($this);
+		$this->databaseReflection = $databaseReflection;
+		return $this;
+	}
+
+
+
+	/** @return IReflection */
+	public function getDatabaseReflection()
+	{
+		if (!$this->databaseReflection) {
+			$this->setDatabaseReflection(new Reflection\ConventionalReflection);
+		}
+		return $this->databaseReflection;
+	}
+
+
+
+	/**
+	 * Sets cache storage engine.
+	 * @return Connection   provides a fluent interface
+	 */
+	public function setCacheStorage(Nette\Caching\IStorage $storage = NULL)
+	{
+		$this->cache = $storage ? new Nette\Caching\Cache($storage, 'Nette.Database.' . md5($this->dsn)) : NULL;
+		return $this;
+	}
+
+
+
+	public function getCache()
+	{
+		return $this->cache;
 	}
 
 
@@ -112,7 +159,7 @@ class Connection extends PDO
 				$need = TRUE; break;
 			}
 		}
-		if (isset($need) || strpos($statement, ':') !== FALSE && $this->preprocessor !== NULL) {
+		if (isset($need) && $this->preprocessor !== NULL) {
 			list($statement, $params) = $this->preprocessor->process($statement, $params);
 		}
 
@@ -197,82 +244,6 @@ class Connection extends PDO
 
 
 
-	/********************* misc ****************d*g**/
-
-
-
-	/**
-	 * Import SQL dump from file - extreme fast.
-	 * @param  string  filename
-	 * @return int  count of commands
-	 */
-	public function loadFile($file)
-	{
-		@set_time_limit(0); // intentionally @
-
-		$handle = @fopen($file, 'r'); // intentionally @
-		if (!$handle) {
-			throw new Nette\FileNotFoundException("Cannot open file '$file'.");
-		}
-
-		$count = 0;
-		$sql = '';
-		while (!feof($handle)) {
-			$s = fgets($handle);
-			$sql .= $s;
-			if (substr(rtrim($s), -1) === ';') {
-				parent::exec($sql); // native query without logging
-				$sql = '';
-				$count++;
-			}
-		}
-		fclose($handle);
-		return $count;
-	}
-
-
-
-	/**
-	 * Returns syntax highlighted SQL command.
-	 * @param  string
-	 * @return string
-	 */
-	public static function highlightSql($sql)
-	{
-		static $keywords1 = 'SELECT|UPDATE|INSERT(?:\s+INTO)?|REPLACE(?:\s+INTO)?|DELETE|FROM|WHERE|HAVING|GROUP\s+BY|ORDER\s+BY|LIMIT|OFFSET|SET|VALUES|LEFT\s+JOIN|INNER\s+JOIN|TRUNCATE';
-		static $keywords2 = 'ALL|DISTINCT|DISTINCTROW|AS|USING|ON|AND|OR|IN|IS|NOT|NULL|LIKE|TRUE|FALSE';
-
-		// insert new lines
-		$sql = " $sql ";
-		$sql = preg_replace("#(?<=[\\s,(])($keywords1)(?=[\\s,)])#i", "\n\$1", $sql);
-
-		// reduce spaces
-		$sql = preg_replace('#[ \t]{2,}#', " ", $sql);
-
-		$sql = wordwrap($sql, 100);
-		$sql = preg_replace("#([ \t]*\r?\n){2,}#", "\n", $sql);
-
-		// syntax highlight
-		$sql = htmlSpecialChars($sql);
-		$sql = preg_replace_callback("#(/\\*.+?\\*/)|(\\*\\*.+?\\*\\*)|(?<=[\\s,(])($keywords1)(?=[\\s,)])|(?<=[\\s,(=])($keywords2)(?=[\\s,)=])#is", function($matches) {
-			if (!empty($matches[1])) // comment
-				return '<em style="color:gray">' . $matches[1] . '</em>';
-
-			if (!empty($matches[2])) // error
-				return '<strong style="color:red">' . $matches[2] . '</strong>';
-
-			if (!empty($matches[3])) // most important keywords
-				return '<strong style="color:blue">' . $matches[3] . '</strong>';
-
-			if (!empty($matches[4])) // other keywords
-				return '<strong style="color:green">' . $matches[4] . '</strong>';
-		}, $sql);
-
-		return '<pre class="dump">' . trim($sql) . "</pre>\n";
-	}
-
-
-
 	/********************* Nette\Object behaviour ****************d*g**/
 
 
@@ -280,9 +251,9 @@ class Connection extends PDO
 	/**
 	 * @return Nette\Reflection\ClassType
 	 */
-	public static function getReflection()
+	public /**/static/**/ function getReflection()
 	{
-		return new Nette\Reflection\ClassType(get_called_class());
+		return new Nette\Reflection\ClassType(/*5.2*$this*//**/get_called_class()/**/);
 	}
 
 

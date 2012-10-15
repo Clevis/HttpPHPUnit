@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2012, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,11 @@
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 2.0.0
  */
-
-require_once 'PHP/CodeCoverage.php';
 
 /**
  * A TestSuite is a composite of Tests. It runs a collection of test cases.
@@ -76,9 +74,8 @@ require_once 'PHP/CodeCoverage.php';
  * @package    PHPUnit
  * @subpackage Framework
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 3.5.14
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.0.0
  */
@@ -150,7 +147,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      *
      * @param  mixed  $theClass
      * @param  string $name
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public function __construct($theClass = '', $name = '')
     {
@@ -179,20 +176,12 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         if (!$argumentsValid) {
-            throw new InvalidArgumentException;
+            throw new PHPUnit_Framework_Exception;
         }
 
         if (!$theClass->isSubclassOf('PHPUnit_Framework_TestCase')) {
-            throw new InvalidArgumentException(
-              'Class does not extend PHPUnit_Framework_TestCase.'
-            );
-        }
-
-        $filename = $theClass->getFilename();
-
-        if (strpos($filename, 'eval()') === FALSE) {
-            PHP_CodeCoverage::getInstance()->filter()->addFileToBlacklist(
-              realpath($filename), 'TESTS'
+            throw new PHPUnit_Framework_Exception(
+              'Class "' . $theClass->name . '" does not extend PHPUnit_Framework_TestCase.'
             );
         }
 
@@ -220,9 +209,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         foreach ($theClass->getMethods() as $method) {
-            if (strpos($method->getDeclaringClass()->getName(), 'PHPUnit_') !== 0) {
-                $this->addTestMethod($theClass, $method);
-            }
+            $this->addTestMethod($theClass, $method);
         }
 
         if (empty($this->tests)) {
@@ -287,7 +274,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * Adds the tests from the given class to the suite.
      *
      * @param  mixed $testClass
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public function addTestSuite($testClass)
     {
@@ -330,7 +317,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         else {
-            throw new InvalidArgumentException;
+            throw new PHPUnit_Framework_Exception;
         }
     }
 
@@ -343,15 +330,14 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * leaving the current test run untouched.
      *
      * @param  string  $filename
-     * @param  boolean $syntaxCheck
      * @param  array   $phptOptions Array with ini settings for the php instance
      *                              run, key being the name if the setting,
      *                              value the ini value.
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      * @since  Method available since Release 2.3.0
      * @author Stefano F. Rausch <stefano@rausch-e.net>
      */
-    public function addTestFile($filename, $syntaxCheck = FALSE, $phptOptions = array())
+    public function addTestFile($filename, $phptOptions = array())
     {
         if (!is_string($filename)) {
             throw PHPUnit_Util_InvalidArgumentHelper::factory(1, 'string');
@@ -366,7 +352,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         PHPUnit_Util_Class::collectStart();
-        $filename   = PHPUnit_Util_Fileloader::checkAndLoad($filename, $syntaxCheck);
+        $filename   = PHPUnit_Util_Fileloader::checkAndLoad($filename);
         $newClasses = PHPUnit_Util_Class::collectEnd();
         $baseName   = str_replace('.php', '', basename($filename));
 
@@ -414,10 +400,10 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * Wrapper for addTestFile() that adds multiple test files.
      *
      * @param  array|Iterator $filenames
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      * @since  Method available since Release 2.3.0
      */
-    public function addTestFiles($filenames, $syntaxCheck = FALSE)
+    public function addTestFiles($filenames)
     {
         if (!(is_array($filenames) ||
              (is_object($filenames) && $filenames instanceof Iterator))) {
@@ -427,7 +413,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         foreach ($filenames as $filename) {
-            $this->addTestFile((string)$filename, $syntaxCheck);
+            $this->addTestFile((string)$filename);
         }
     }
 
@@ -455,7 +441,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * @param  ReflectionClass $theClass
      * @param  string          $name
      * @return PHPUnit_Framework_Test
-     * @throws RuntimeException
+     * @throws PHPUnit_Framework_Exception
      */
     public static function createTest(ReflectionClass $theClass, $name)
     {
@@ -568,7 +554,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
         }
 
         if (!isset($test)) {
-            throw new RuntimeException('No valid test provided.');
+            throw new PHPUnit_Framework_Exception('No valid test provided.');
         }
 
         if ($test instanceof PHPUnit_Framework_TestCase) {
@@ -636,7 +622,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * @param  array                        $excludeGroups
      * @param  boolean                      $processIsolation
      * @return PHPUnit_Framework_TestResult
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public function run(PHPUnit_Framework_TestResult $result = NULL, $filter = FALSE, array $groups = array(), array $excludeGroups = array(), $processIsolation = FALSE)
     {
@@ -646,23 +632,49 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
 
         $result->startTestSuite($this);
 
-        try {
-            $this->setUp();
+        $doSetup = TRUE;
 
-            if ($this->testCase &&
-                method_exists($this->name, 'setUpBeforeClass')) {
-                call_user_func(array($this->name, 'setUpBeforeClass'));
+        if (!empty($excludeGroups)) {
+            foreach ($this->groups as $_group => $_tests) {
+                if (in_array($_group, $excludeGroups) &&
+                    count($_tests) == count($this->tests)) {
+                    $doSetup = FALSE;
+                }
             }
         }
 
-        catch (PHPUnit_Framework_SkippedTestSuiteError $e) {
-            $numTests = count($this);
+        if ($doSetup) {
+            try {
+                $this->setUp();
 
-            for ($i = 0; $i < $numTests; $i++) {
-                $result->addFailure($this, $e, 0);
+                if ($this->testCase &&
+                    // Some extensions use test names that are not classes;
+                    // The method_exists() triggers an autoload call that causes issues with die()ing autoloaders.
+                    class_exists($this->name, false) &&
+                    method_exists($this->name, 'setUpBeforeClass')) {
+                    call_user_func(array($this->name, 'setUpBeforeClass'));
+                }
             }
 
-            return $result;
+            catch (PHPUnit_Framework_SkippedTestSuiteError $e) {
+                $numTests = count($this);
+
+                for ($i = 0; $i < $numTests; $i++) {
+                    $result->addFailure($this, $e, 0);
+                }
+
+                return $result;
+            }
+
+            catch (Exception $e) {
+                $numTests = count($this);
+
+                for ($i = 0; $i < $numTests; $i++) {
+                    $result->addError($this, $e, 0);
+                }
+
+                return $result;
+            }
         }
 
         if (empty($groups)) {
@@ -735,12 +747,18 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
             }
         }
 
-        if ($this->testCase &&
-            method_exists($this->name, 'tearDownAfterClass')) {
-            call_user_func(array($this->name, 'tearDownAfterClass'));
+        if ($doSetup) {
+            if ($this->testCase &&
+                // Some extensions use test names that are not classes;
+                // The method_exists() triggers an autoload call that causes issues with die()ing autoloaders.
+                class_exists($this->name, false) &&
+                method_exists($this->name, 'tearDownAfterClass')) {
+                call_user_func(array($this->name, 'tearDownAfterClass'));
+            }
+
+            $this->tearDown();
         }
 
-        $this->tearDown();
         $result->endTestSuite($this);
 
         return $result;
@@ -750,7 +768,7 @@ class PHPUnit_Framework_TestSuite implements PHPUnit_Framework_Test, PHPUnit_Fra
      * Runs a test.
      *
      * @param  PHPUnit_Framework_Test        $test
-     * @param  PHPUnit_Framework_TestResult  $testResult
+     * @param  PHPUnit_Framework_TestResult  $result
      */
     public function runTest(PHPUnit_Framework_Test $test, PHPUnit_Framework_TestResult $result)
     {

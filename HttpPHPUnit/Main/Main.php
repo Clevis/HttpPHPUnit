@@ -47,14 +47,18 @@ class Main extends Object
 
 	/**
 	 * @param string path to PHPUnit
+	 * @param bool $loadPHPUnit
 	 * @throws DirectoryNotFoundException
 	 */
-	public function __construct($phpUnitDir = NULL)
+	public function __construct($phpUnitDir = NULL, $loadPHPUnit = true)
 	{
-		if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../../PHPUnit';
-		if (!is_dir($phpUnitDir)) throw new DirectoryNotFoundException($phpUnitDir);
-		set_include_path($phpUnitDir);
-		require_once 'PHPUnit/Autoload.php';
+		if ($loadPHPUnit)
+		{
+			if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../../PHPUnit';
+			if (!is_dir($phpUnitDir)) throw new DirectoryNotFoundException($phpUnitDir);
+			set_include_path($phpUnitDir);
+			require_once 'PHPUnit/Autoload.php';
+		}
 		require_once __DIR__ . '/Command.php';
 		require_once __DIR__ . '/TemplateFactory.php';
 		require_once __DIR__ . '/../ResultPrinter/ResultPrinter.php';
@@ -131,20 +135,21 @@ class Main extends Object
 	 * @param string app dir
 	 * @param string report dir
 	 * @throws DirectoryNotFoundException
-	 * @return PHP_CodeCoverage
+	 * @return PHP_CodeCoverage|NULL
 	 */
 	public function coverage($appDir, $coverageDir)
 	{
-		require_once 'PHP/CodeCoverage.php';
-		$coverage = PHP_CodeCoverage::getInstance();
-		if (!$this->run OR $this->testDir OR !extension_loaded('xdebug'))
+		if (!extension_loaded('xdebug'))
 		{
-			if (!extension_loaded('xdebug'))
-			{
-				$this->onAfter['coverage'] = function () {
-					echo 'Coverage: The Xdebug extension is not loaded.';
-				};
-			}
+			$this->onAfter['coverage'] = function () {
+				echo 'Coverage: The Xdebug extension is not loaded.';
+			};
+			return;
+		}
+		$coverage = new PHP_CodeCoverage;
+		$coverage->setProcessUncoveredFilesFromWhitelist(true);
+		if (!$this->run OR $this->testDir)
+		{
 			return $coverage;
 		}
 		@mkdir ($coverageDir);

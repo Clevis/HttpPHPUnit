@@ -38,28 +38,28 @@
  * @package    Template
  * @author     Sebastian Bergmann <sb@sebastian-bergmann.de>
  * @copyright  2009-2010 Sebastian Bergmann <sb@sebastian-bergmann.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://github.com/sebastianbergmann/php-text-template
  * @since      File available since Release 1.1.0
  */
 
-function text_template_autoload($class) {
-    static $classes = NULL;
-    static $path = NULL;
+spl_autoload_register(
+  function ($class) {
+      static $classes = NULL;
+      static $path = NULL;
 
-    if ($classes === NULL) {
-        $classes = array(
-          'text_template' => '/Template.php'
-        );
+      if ($classes === NULL) {
+          $classes = array(
+            'text_template' => '/Template.php'
+          );
 
-        $path = dirname(dirname(__FILE__));
-    }
+          $path = dirname(dirname(__FILE__));
+      }
 
-    $cn = strtolower($class);
+      $cn = strtolower($class);
 
-    if (isset($classes[$cn])) {
-        require $path . $classes[$cn];
-    }
-}
-
-spl_autoload_register('text_template_autoload');
+      if (isset($classes[$cn])) {
+          require $path . $classes[$cn];
+      }
+  }
+);

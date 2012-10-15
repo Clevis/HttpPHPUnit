@@ -2,7 +2,7 @@
 /**
  * PHPUnit
  *
- * Copyright (c) 2002-2011, Sebastian Bergmann <sebastian@phpunit.de>.
+ * Copyright (c) 2001-2012, Sebastian Bergmann <sebastian@phpunit.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,8 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      File available since Release 2.0.0
  */
@@ -49,13 +49,12 @@
  * @package    PHPUnit
  * @subpackage Util
  * @author     Sebastian Bergmann <sebastian@phpunit.de>
- * @copyright  2002-2011 Sebastian Bergmann <sebastian@phpunit.de>
- * @license    http://www.opensource.org/licenses/bsd-license.php  BSD License
- * @version    Release: 3.5.14
+ * @copyright  2001-2012 Sebastian Bergmann <sebastian@phpunit.de>
+ * @license    http://www.opensource.org/licenses/BSD-3-Clause  The BSD 3-Clause License
  * @link       http://www.phpunit.de/
  * @since      Class available since Release 2.0.0
  */
-abstract class PHPUnit_Util_Printer
+class PHPUnit_Util_Printer
 {
     /**
      * If TRUE, flush output after every write.
@@ -83,7 +82,7 @@ abstract class PHPUnit_Util_Printer
      * Constructor.
      *
      * @param  mixed $out
-     * @throws InvalidArgumentException
+     * @throws PHPUnit_Framework_Exception
      */
     public function __construct($out = NULL)
     {
@@ -93,14 +92,14 @@ abstract class PHPUnit_Util_Printer
                     $out = explode(':', str_replace('socket://', '', $out));
 
                     if (sizeof($out) != 2) {
-                        throw new InvalidArgumentException;
+                        throw new PHPUnit_Framework_Exception;
                     }
 
                     $this->out = fsockopen($out[0], $out[1]);
                 } else {
                     if (strpos($out, 'php://') === FALSE &&
                         !is_dir(dirname($out))) {
-                      mkdir(dirname($out), 0777, TRUE);
+                        mkdir(dirname($out), 0777, TRUE);
                     }
 
                     $this->out = fopen($out, 'wt');
@@ -114,11 +113,11 @@ abstract class PHPUnit_Util_Printer
     }
 
     /**
-     * Flush buffer, optionally tidy up HTML, and close output.
+     * Flush buffer, optionally tidy up HTML, and close output if it's not to a php stream
      */
     public function flush()
     {
-        if ($this->out && $this->outTarget !== 'php://stderr') {
+        if ($this->out && strncmp($this->outTarget, 'php://', 6) !== 0) {
             fclose($this->out);
         }
 

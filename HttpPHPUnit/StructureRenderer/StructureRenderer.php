@@ -110,4 +110,9 @@ class StructureRenderer extends Control
 		return $result;
 	}
 
+	public function templatePrepareFilters($template)
+	{
+		$template->registerFilter(new \Nette\Latte\Engine);
+	}
+
 }
