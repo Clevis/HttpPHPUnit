@@ -117,6 +117,10 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 		$this->write('</h3>');
 
 		$message = $e->getMessage();
+		if ($e instanceof \PHPUnit_Framework_ExpectationFailedException && $comparison = $e->getComparisonFailure())
+		{
+			$message .= "\n \n" . $comparison->toString();
+		}
 		if (!$message) $message = '(no message)';
 		if ($state === self::ERROR) $message = get_class($e) . ': ' . $message;
 		if (strlen($message) > 400 OR substr_count($message, "\n") > 4)
