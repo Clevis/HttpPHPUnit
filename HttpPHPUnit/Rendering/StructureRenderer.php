@@ -1,64 +1,73 @@
 <?php
 
-namespace HttpPHPUnit;
+namespace HttpPHPUnit\Rendering;
 
 use Nette\Object;
-use Nette\DirectoryNotFoundException;
 use Nette\Utils\Finder;
+use HttpPHPUnit\Config;
+
 
 /**
  * @author Petr Prochazka
  */
 class StructureRenderer extends Object
 {
+
 	/** @var string dir */
-	private $dir;
+	private $testDirectory;
 
 	/** @var string dir or file */
-	private $open;
+	private $filterDirectory;
 
 	/** @var NULL|string */
-	private $method = NULL;
+	private $filterMethod = NULL;
 
-	/** Nette\Templating\FileTemplate */
+	/** @var Nette\Templating\FileTemplate */
 	private $template;
 
-	/**
-	 * @param string
-	 * @param string
-	 */
-	public function __construct($dir, $open)
+	/** @var callable (string|NULL $filterDirectory, string|NULL $filterMethod = NULL) => string */
+	private $createFilterLink;
+
+	public function __construct(Config\Configuration $configuration, Config\Link $link)
 	{
-		$open = explode('::', $open, 2);
-		if (isset($open[1]))
+		$filterMethod = $configuration->getFilterMethod();
+		if ($filterMethod)
 		{
-			$tmp = explode(' ', $open[1], 2);
-			$this->method = $tmp[0];
+			$tmp = explode(' ', $filterMethod, 2); // data provider
+			$this->filterMethod = $tmp[0];
 		}
-		$this->open = realpath($dir . '/' . $open[0]);
-		$this->dir = realpath($dir);
-		if (!$this->dir)
+		$this->testDirectory = realpath($configuration->getTestDirectory());
+		$this->filterDirectory = realpath($this->testDirectory . '/' . $configuration->getFilterDirectory());
+		if (!$this->testDirectory)
 		{
-			throw new DirectoryNotFoundException($dir);
+			throw new \Exception("Directory not found: {$configuration->getTestDirectory()}");
 		}
+		$this->createFilterLink = function ($filterDirectory, $filterMethod = NULL) use ($link, $configuration) {
+			return $link->createLink($configuration, array(
+				'setFilter' => array($filterDirectory, $filterMethod),
+			));
+		};
 		$this->template = TemplateFactory::create(__DIR__ . '/StructureRenderer.latte');
 	}
 
+	/**
+	 * Render structure
+	 */
 	public function render()
 	{
 		$editor = new OpenInEditor;
 		$structure = (object) array('structure' => array());
 		$isAll = true;
-		foreach (Finder::findFiles('*Test.php')->from($this->dir) as $file)
+		foreach (Finder::findFiles('*Test.php')->from($this->testDirectory) as $file)
 		{
-			$relative = substr($file, strlen($this->dir) + 1);
+			$relative = substr($file, strlen($this->testDirectory) + 1);
 			$cursor = & $structure;
 			foreach (explode(DIRECTORY_SEPARATOR, $relative) as $d)
 			{
 				$r = isset($cursor->relative) ? $cursor->relative . DIRECTORY_SEPARATOR : NULL;
 				$cursor = & $cursor->structure[$d];
-				$path = $this->dir . DIRECTORY_SEPARATOR . $r . $d;
-				$open = $path === $this->open;
+				$path = $this->testDirectory . DIRECTORY_SEPARATOR . $r . $d;
+				$open = $path === $this->filterDirectory;
 				if ($open) $isAll = false;
 				$cursor = (object) array(
 					'relative' => $r . $d,
@@ -68,14 +77,16 @@ class StructureRenderer extends Object
 					'editor' => $editor->link($path, 1),
 					'mode' => is_file($path) ? 'file' : 'folder',
 				);
+				$cursor->link = call_user_func($this->createFilterLink, $cursor->relative);
 				if (!$cursor->structure AND $cursor->mode === 'file')
 				{
-					foreach ($this->loadMethod($path) as $l => $m)
+					foreach ($this->loadMethods($path) as $l => $m)
 					{
 						$cursor->structure[$m] = (object) array(
 							'relative' => $cursor->relative . '::' . $m,
+							'link' => call_user_func($this->createFilterLink, $cursor->relative, $m),
 							'name' => $m,
-							'open' => $cursor->open AND $this->method === $m,
+							'open' => $cursor->open AND $this->filterMethod === $m,
 							'structure' => array(),
 							'editor' => $editor->link($path, $l),
 							'mode' => 'method',
@@ -86,16 +97,17 @@ class StructureRenderer extends Object
 			$cursor->name = $file->getBasename();
 		}
 
-		$this->template->isAll = ($isAll AND $this->open !== false);
+		$this->template->backToAllLink = !($isAll AND $this->filterDirectory !== false) ? call_user_func($this->createFilterLink, NULL) : NULL;
 		$this->template->structure = $structure->structure;
 		$this->template->render();
 	}
 
 	/**
+	 * Load TestCase methods.
 	 * @param string
 	 * @return array of line => testName
 	 */
-	private function loadMethod($path)
+	private function loadMethods($path)
 	{
 		$result = array();
 		if (is_file($path))

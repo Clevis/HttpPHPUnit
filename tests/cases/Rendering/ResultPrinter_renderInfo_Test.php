@@ -1,13 +1,14 @@
 <?php
 
 /**
- * @covers HttpPHPUnit\ResultPrinter::renderInfo
+ * @covers HttpPHPUnit\Rendering\ResultPrinter::renderInfo
  */
 class ResultPrinter_renderInfo_Test extends TestCase
 {
 	public function testDataProvider()
 	{
-		$r = new HttpPHPUnit\ResultPrinter;
+		$configuration = new HttpPHPUnit\Config\Configuration;
+		$r = new HttpPHPUnit\Rendering\ResultPrinter($configuration, new HttpPHPUnit\Events\Events);
 		$t = new self('DataProvider', array(1,2,'<b>3</b>'));
 		$r->setAutoFlush(false);
 		$r->addError($t, new Exception, 0);
@@ -17,7 +18,8 @@ class ResultPrinter_renderInfo_Test extends TestCase
 
 	public function testDataProviderOneLine()
 	{
-		$r = new HttpPHPUnit\ResultPrinter;
+		$configuration = new HttpPHPUnit\Config\Configuration;
+		$r = new HttpPHPUnit\Rendering\ResultPrinter($configuration, new HttpPHPUnit\Events\Events);
 		$t = new self('DataProvider', array(1,2,'<b>3</b>'));
 		$r->setAutoFlush(false);
 		$r->addIncompleteTest($t, new Exception, 0);

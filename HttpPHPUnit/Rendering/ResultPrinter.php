@@ -1,8 +1,10 @@
 <?php
 
-namespace HttpPHPUnit;
+namespace HttpPHPUnit\Rendering;
 
 use Nette\Utils\Html;
+use HttpPHPUnit\Config;
+use HttpPHPUnit\Events;
 use PHPUnit_Util_TestDox_ResultPrinter;
 use PHPUnit_Framework_Test;
 use PHPUnit_Framework_AssertionFailedError;
@@ -12,27 +14,31 @@ use PHPUnit_Runner_BaseTestRunner;
 use ReflectionClass;
 use PHPUnit_Util_Test;
 
+
 /**
  * @author Petr Prochazka
  */
 class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 {
+
 	const FAILURE = 'Failure';
 	const ERROR = 'Error';
 	const INCOMPLETE = 'Incomplete';
 	const SKIPPED = 'Skipped';
 
 	/** @var bool true display Nette\Diagnostics\Debugger */
-	public $debug = false;
+	private $debug = false;
 
 	/** @var string dir to tests */
-	public $dir;
+	private $dir;
 
 	/** @var string temp file */
 	private $file;
 
+	/** @var bool PHPUnit setup */
 	protected $printsHTML = true;
 
+	/** @var bool PHPUnit setup */
 	protected $autoFlush = true;
 
 	/** @var mixed */
@@ -47,8 +53,24 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 	/** @var bool */
 	private $progressStarted = false;
 
-	public function __construct()
+	/** @var callable|NULL (string|NULL $filterDirectory, string|NULL $filterMethod = NULL) => string */
+	private $createFilterLink;
+
+	public function __construct(Config\Configuration $configuration, Events\Events $events, Config\Link $link = NULL)
 	{
+		$this->events = $events;
+		if ($link)
+		{
+			$this->createFilterLink = function ($filterDirectory, $filterMethod = NULL) use ($link, $configuration) {
+				return $link->createLink($configuration, array(
+					'setFilter' => array($filterDirectory, $filterMethod),
+				));
+			};
+		}
+
+		$this->debug = $configuration->isDebug();
+		$this->dir = $configuration->getTestDirectory() . DIRECTORY_SEPARATOR;
+
 		$this->file = tempnam(sys_get_temp_dir(), 'test');
 		parent::__construct(fopen($this->file, 'w'));
 		$this->editor = new OpenInEditor;
@@ -146,6 +168,8 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 			$this->write(Html::el('p', $message));
 		}
 
+		$this->events->triggerListener('onRendererPrinterError', array($test, $e, $state));
+
 		$this->write('</div>');
 
 		if ($this->debug)
@@ -222,6 +246,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 					list($test, $e) = $tmp;
 					$this->renderInfo($test, $e);
 					$this->write(" " . htmlspecialchars($e->getMessage()) . "\n");
+					$this->events->triggerListener('onRendererPrinterInfo', array($test, $e, $state));
 				}
 				$this->write("</div>");
 			}
@@ -265,6 +290,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 		if ($this->testStatus == PHPUnit_Runner_BaseTestRunner::STATUS_PASSED)
 		{
 			$this->successful++;
+			$this->events->triggerListener('onRendererPrinterSuccess', array($test));
 		}
 		parent::endTest($test, $time);
 	}
@@ -276,7 +302,7 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 	 * 		'FooBarTest',
 	 * 		'testFooBar',
 	 *		'/tests/Foo/FooBarTest.php',
-	 * 		'Foo/FooBarTest.php::testFooBar',
+	 * 		array('Foo/FooBarTest.php', 'testFooBar'),
 	 * )
 	 */
 	private function getTestInfo(PHPUnit_Framework_Test $test)
@@ -285,12 +311,12 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 		$path = $r->getFileName();
 		$class = preg_replace('#_?Test$#si', '', get_class($test));
 		$method = $test->getName(false);
-		$filter = NULL;
+		$filter = array();
 		if ($this->dir AND strncasecmp($path, $this->dir, strlen($this->dir)) === 0)
 		{
 			$dir = substr($path, strlen($this->dir));
 			$describe = PHPUnit_Util_Test::describe($test, false);
-			$filter = strtr(urlencode($dir), array('%5C' => '\\', '%2F' => '/')) . '::' . urlencode($describe[1]);
+			$filter = array($dir, $describe[1]);
 		}
 		return array($class, $method, $path, $filter);
 	}
@@ -303,7 +329,12 @@ class ResultPrinter extends PHPUnit_Util_TestDox_ResultPrinter
 	private function renderInfo(PHPUnit_Framework_Test $test, Exception $e, $oneLine = true)
 	{
 		list($class, $method, $path, $filter) = $this->getTestInfo($test);
-		$this->write(Html::el($filter ? 'a' : NULL, "$class :: $method")->href("?test=$filter"));
+		$a = Html::el(NULL, "$class :: $method");
+		if ($filter AND $this->createFilterLink)
+		{
+			$a->setName('a')->href(call_user_func_array($this->createFilterLink, $filter));
+		}
+		$this->write($a);
 		if ($editor = $this->getEditorLink($path, $e, $method))
 		{
 			$editor = Html::el('a', 'open in editor')->href($editor);

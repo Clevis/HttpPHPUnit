@@ -1,21 +1,21 @@
 {**
  * @author Petr Prochazka
  * @author Jan Tvrdík
- * @param bool $isAll
+ * @param string $backToAllLink
  * @param string $basePath
  * @param array $structure
  *}
 
 <div id="structure" class="filetree treeview">
 
-	<p n:if="!$isAll" id="backToAll"><a href="?run">« Back to all</a></p>
+	<p n:if="$backToAllLink !== NULL" id="backToAll"><a href="{$backToAllLink}">« Back to all</a></p>
 	<img class="structure-placeholder" src="{$basePath}/assets/images/ajax-loader.gif">
 
 	<ul n:block="#render" style="display: none;">
 		{foreach $structure as $dir => $content}
 			<li>
 				<span n:class="node, $content->mode, $content->open ? open">
-					<a class="name" href="?test={$content->relative}">{$content->name}</a>
+					<a class="name" href="{$content->link}">{$content->name}</a>
 					<span class="actions">
 						<a class="editor" n:if="$content->editor" href="{$content->editor}">(open in editor)</a>
 					</span>

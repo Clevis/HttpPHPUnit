@@ -1,6 +1,6 @@
 <?php
 
-namespace HttpPHPUnit;
+namespace HttpPHPUnit\Rendering;
 
 use Nette\Object;
 use Nette\Templating\FileTemplate;
