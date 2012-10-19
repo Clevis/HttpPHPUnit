@@ -107,7 +107,7 @@ class IncludePathLoader extends Object implements IPHPUnitLoader
 				throw new Exception("PHPUnit not found: {$setIncludePath}/PHPUnit/Autoload.php");
 			}
 
-			set_include_path($setIncludePath);
+			set_include_path($setIncludePath . PATH_SEPARATOR . get_include_path());
 		}
 
 		$this->limitedScopeLoad($include);
