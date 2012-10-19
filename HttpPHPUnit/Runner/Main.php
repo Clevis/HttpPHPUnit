@@ -55,13 +55,6 @@ class Main extends Object
 			$loader = new Loaders\IncludePathLoader($loader);
 		}
 		$loader->load();
-		require_once __DIR__ . '/Command.php';
-		require_once __DIR__ . '/TemplateFactory.php';
-		require_once __DIR__ . '/../ResultPrinter/ResultPrinter.php';
-		require_once __DIR__ . '/../ResultPrinter/OpenInEditor.php';
-		require_once __DIR__ . '/../ResultPrinter/ResultPrinterTestCaseHelper.php';
-		require_once __DIR__ . '/../ResultPrinter/NetteDebug.php';
-		require_once __DIR__ . '/../StructureRenderer/StructureRenderer.php';
 
 		$this->testDir = isset($_GET['test']) ? $_GET['test'] : NULL;
 		if ($this->testDir AND $pos = strrpos($this->testDir, '::'))
