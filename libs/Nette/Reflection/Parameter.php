@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,6 +20,17 @@ use Nette,
  * Reports information about a method's parameter.
  *
  * @author     David Grudl
+ * @property-read ClassType $class
+ * @property-read string $className
+ * @property-read ClassType $declaringClass
+ * @property-read Method $declaringFunction
+ * @property-read string $name
+ * @property-read bool $passedByReference
+ * @property-read bool $array
+ * @property-read int $position
+ * @property-read bool $optional
+ * @property-read bool $defaultValueAvailable
+ * @property-read mixed $defaultValue
  */
 class Parameter extends \ReflectionParameter
 {
@@ -49,7 +60,14 @@ class Parameter extends \ReflectionParameter
 	 */
 	public function getClassName()
 	{
-		return ($tmp = Nette\Utils\Strings::match($this, '#>\s+([a-z0-9_\\\\]+)#i')) ? $tmp[1] : NULL;
+		try {
+			return ($ref = parent::getClass()) ? $ref->getName() : NULL;
+		} catch (\ReflectionException $e) {
+			if (preg_match('#Class (.+) does not exist#', $e->getMessage(), $m)) {
+				return $m[1];
+			}
+			throw $e;
+		}
 	}
 
 
@@ -65,13 +83,38 @@ class Parameter extends \ReflectionParameter
 
 
 	/**
-	 * @return Method | FunctionReflection
+	 * @return Method|GlobalFunction
 	 */
 	public function getDeclaringFunction()
 	{
 		return is_array($this->function)
 			? new Method($this->function[0], $this->function[1])
 			: new GlobalFunction($this->function);
+	}
+
+
+
+	/**
+	 * @return bool
+	 */
+	public function isDefaultValueAvailable()
+	{
+		if (PHP_VERSION_ID === 50316) { // PHP bug #62988
+			try {
+				$this->getDefaultValue();
+				return TRUE;
+			} catch (\ReflectionException $e) {
+				return FALSE;
+			}
+		}
+		return parent::isDefaultValueAvailable();
+	}
+
+
+
+	public function __toString()
+	{
+		return 'Parameter $' . parent::getName() . ' in ' . $this->getDeclaringFunction();
 	}
 
 

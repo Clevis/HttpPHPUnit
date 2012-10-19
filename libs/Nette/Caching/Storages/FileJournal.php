@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -107,7 +107,6 @@ class FileJournal extends Nette\Object implements IJournal
 
 	/**
 	 * @param  string  Directory location with journal file
-	 * @return void
 	 */
 	public function __construct($dir)
 	{
@@ -321,7 +320,6 @@ class FileJournal extends Nette\Object implements IJournal
 
 	/**
 	 * Cleans entries from journal by tags.
-	 * @param  array
 	 * @return array of removed items
 	 */
 	private function cleanTags(array $tags, array &$toDelete)

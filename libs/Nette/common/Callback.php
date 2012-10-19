@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -19,38 +19,48 @@ use Nette;
  * PHP callback encapsulation.
  *
  * @author     David Grudl
+ * @property-read bool $callable
+ * @property-read string|array|\Closure $native
+ * @property-read bool $static
  */
 final class Callback extends Object
 {
-	/** @var string|array|\Closure */
+	/** @var callable */
 	private $cb;
 
 
 
 	/**
-	 * Do not call directly, use callback() function.
-	 * @param  mixed   class, object, function, callback
+	 * Factory. Workaround for missing (new Callback)->invoke() in PHP 5.3.
+	 * @param  mixed   class, object, callable
+	 * @param  string  method
+	 * @return Callback
+	 */
+	public static function create($callback, $m = NULL)
+	{
+		return new self($callback, $m);
+	}
+
+
+
+	/**
+	 * @param  mixed   class, object, callable
 	 * @param  string  method
 	 */
-	public function __construct($t, $m = NULL)
+	public function __construct($cb, $m = NULL)
 	{
-		if ($m === NULL) {
-			if (is_string($t)) {
-				$t = explode('::', $t, 2);
-				$this->cb = isset($t[1]) ? $t : $t[0];
-			} elseif (is_object($t)) {
-				$this->cb = $t instanceof \Closure ? $t : array($t, '__invoke');
-			} else {
-				$this->cb = $t;
-			}
+		if ($m !== NULL) {
+			$cb = array($cb, $m);
 
-		} else {
-			$this->cb = array($t, $m);
+		} elseif ($cb instanceof self) { // prevents wrapping itself
+			$this->cb = $cb->cb;
+			return;
 		}
 
-		if (!is_callable($this->cb, TRUE)) {
+		if (!is_callable($cb, TRUE)) {
 			throw new InvalidArgumentException("Invalid callback.");
 		}
+		$this->cb = $cb;
 	}
 
 
@@ -101,23 +111,6 @@ final class Callback extends Object
 
 
 	/**
-	 * Invokes callback using named parameters.
-	 * @param  array
-	 * @return mixed
-	 */
-	public function invokeNamedArgs(array $args)
-	{
-		$ref = $this->toReflection();
-		if (is_array($this->cb)) {
-			return $ref->invokeNamedArgs(is_object($this->cb[0]) ? $this->cb[0] : NULL, $args);
-		} else {
-			return $ref->invokeNamedArgs($args);
-		}
-	}
-
-
-
-	/**
 	 * Verifies that callback can be called.
 	 * @return bool
 	 */
@@ -145,8 +138,12 @@ final class Callback extends Object
 	 */
 	public function toReflection()
 	{
-		if (is_array($this->cb)) {
+		if (is_string($this->cb) && strpos($this->cb, '::')) {
+			return new Nette\Reflection\Method($this->cb);
+		} elseif (is_array($this->cb)) {
 			return new Nette\Reflection\Method($this->cb[0], $this->cb[1]);
+		} elseif (is_object($this->cb) && !$this->cb instanceof \Closure) {
+			return new Nette\Reflection\Method($this->cb, '__invoke');
 		} else {
 			return new Nette\Reflection\GlobalFunction($this->cb);
 		}

@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,11 +20,39 @@ use Nette,
  * Reports information about a class.
  *
  * @author     David Grudl
+ * @property-read Method $constructor
+ * @property-read Extension $extension
+ * @property-read ClassType[] $interfaces
+ * @property-read Method[] $methods
+ * @property-read ClassType $parentClass
+ * @property-read Property[] $properties
+ * @property-read IAnnotation[][] $annotations
+ * @property-read string $description
+ * @property-read string $name
+ * @property-read bool $internal
+ * @property-read bool $userDefined
+ * @property-read bool $instantiable
+ * @property-read string $fileName
+ * @property-read int $startLine
+ * @property-read int $endLine
+ * @property-read string $docComment
+ * @property-read mixed[] $constants
+ * @property-read string[] $interfaceNames
+ * @property-read bool $interface
+ * @property-read bool $abstract
+ * @property-read bool $final
+ * @property-read int $modifiers
+ * @property-read array $staticProperties
+ * @property-read array $defaultProperties
+ * @property-read bool $iterateable
+ * @property-read string $extensionName
+ * @property-read string $namespaceName
+ * @property-read string $shortName
  */
 class ClassType extends \ReflectionClass
 {
 
-	/** @var array (method => array(type => callback)) */
+	/** @var array (method => array(type => callable)) */
 	private static $extMethods;
 
 
@@ -64,13 +92,13 @@ class ClassType extends \ReflectionClass
 	/**
 	 * Adds a method to class.
 	 * @param  string  method name
-	 * @param  mixed   callback or closure
+	 * @param  mixed   callable
 	 * @return ClassType  provides a fluent interface
 	 */
 	public function setExtensionMethod($name, $callback)
 	{
 		$l = & self::$extMethods[strtolower($name)];
-		$l[strtolower($this->getName())] = callback($callback);
+		$l[strtolower($this->getName())] = new Nette\Callback($callback);
 		$l[''] = NULL;
 		return $this;
 	}
@@ -112,12 +140,23 @@ class ClassType extends \ReflectionClass
 
 
 
+	/**
+	 * @param  string
+	 * @return bool
+	 */
+	public function is($type)
+	{
+		return $this->isSubclassOf($type) || strcasecmp($this->getName(), ltrim($type, '\\')) === 0;
+	}
+
+
+
 	/********************* Reflection layer ****************d*g**/
 
 
 
 	/**
-	 * @return Method
+	 * @return Method|NULL
 	 */
 	public function getConstructor()
 	{
@@ -127,7 +166,7 @@ class ClassType extends \ReflectionClass
 
 
 	/**
-	 * @return Extension
+	 * @return Extension|NULL
 	 */
 	public function getExtension()
 	{
@@ -136,6 +175,9 @@ class ClassType extends \ReflectionClass
 
 
 
+	/**
+	 * @return ClassType[]
+	 */
 	public function getInterfaces()
 	{
 		$res = array();
@@ -157,6 +199,9 @@ class ClassType extends \ReflectionClass
 
 
 
+	/**
+	 * @return Method[]
+	 */
 	public function getMethods($filter = -1)
 	{
 		foreach ($res = parent::getMethods($filter) as $key => $val) {
@@ -168,7 +213,7 @@ class ClassType extends \ReflectionClass
 
 
 	/**
-	 * @return ClassType
+	 * @return ClassType|NULL
 	 */
 	public function getParentClass()
 	{
@@ -177,6 +222,9 @@ class ClassType extends \ReflectionClass
 
 
 
+	/**
+	 * @return Property[]
+	 */
 	public function getProperties($filter = -1)
 	{
 		foreach ($res = parent::getProperties($filter) as $key => $val) {
@@ -229,7 +277,7 @@ class ClassType extends \ReflectionClass
 
 	/**
 	 * Returns all annotations.
-	 * @return array
+	 * @return IAnnotation[][]
 	 */
 	public function getAnnotations()
 	{

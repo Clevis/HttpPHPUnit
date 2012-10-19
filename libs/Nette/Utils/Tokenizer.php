@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -11,8 +11,7 @@
 
 namespace Nette\Utils;
 
-use Nette,
-	Nette\Utils\Strings;
+use Nette;
 
 
 
@@ -20,7 +19,6 @@ use Nette,
  * Simple lexical analyser.
  *
  * @author     David Grudl
- * @internal
  */
 class Tokenizer extends Nette\Object
 {
@@ -43,12 +41,12 @@ class Tokenizer extends Nette\Object
 	private $types;
 
 	/** @var array|string */
-	private $current;
+	public $current;
 
 
 
 	/**
-	 * @param  array of [symbol type => pattern]
+	 * @param  array of [(int) symbol type => pattern]
 	 * @param  string  regular expression flag
 	 */
 	public function __construct(array $patterns, $flags = '')
@@ -135,37 +133,53 @@ class Tokenizer extends Nette\Object
 
 
 	/**
-	 * Returns next token.
+	 * Returns next token as string.
 	 * @param  desired token
 	 * @return string
 	 */
 	public function fetch()
 	{
-		return $this->scan(func_get_args(), TRUE);
+		$args = func_get_args();
+		return $this->scan($args, TRUE);
 	}
 
 
 
 	/**
-	 * Returns all next tokens.
+	 * Returns next token.
+	 * @param  desired token
+	 * @return array|string
+	 */
+	public function fetchToken()
+	{
+		$args = func_get_args();
+		return $this->scan($args, TRUE) === FALSE ? FALSE : $this->current;
+	}
+
+
+
+	/**
+	 * Returns concatenation of all next tokens.
 	 * @param  desired token
 	 * @return string
 	 */
 	public function fetchAll()
 	{
-		return $this->scan(func_get_args(), FALSE);
+		$args = func_get_args();
+		return $this->scan($args, FALSE);
 	}
 
 
 
 	/**
-	 * Returns all next tokens until it sees a token with the given value.
+	 * Returns concatenation of all next tokens until it sees a token with the given value.
 	 * @param  tokens
 	 * @return string
 	 */
 	public function fetchUntil($arg)
 	{
-		return $this->scan(func_get_args(), FALSE, TRUE, TRUE);
+		$args = func_get_args();
+		return $this->scan($args, FALSE, TRUE, TRUE);
 	}
 
 
@@ -177,7 +191,43 @@ class Tokenizer extends Nette\Object
 	 */
 	public function isNext($arg)
 	{
-		return (bool) $this->scan(func_get_args(), TRUE, FALSE);
+		$args = func_get_args();
+		return (bool) $this->scan($args, TRUE, FALSE);
+	}
+
+
+
+	/**
+	 * Checks the previous token.
+	 * @param  token
+	 * @return string
+	 */
+	public function isPrev($arg)
+	{
+		$args = func_get_args();
+		return (bool) $this->scan($args, TRUE, FALSE, FALSE, TRUE);
+	}
+
+
+
+	/**
+	 * Checks existence of next token.
+	 * @return bool
+	 */
+	public function hasNext()
+	{
+		return isset($this->tokens[$this->position]);
+	}
+
+
+
+	/**
+	 * Checks existence of previous token.
+	 * @return bool
+	 */
+	public function hasPrev()
+	{
+		return $this->position > 1;
 	}
 
 
@@ -189,7 +239,21 @@ class Tokenizer extends Nette\Object
 	 */
 	public function isCurrent($arg)
 	{
-		return in_array($this->current, func_get_args(), TRUE);
+		$args = func_get_args();
+		if (is_array($this->current)) {
+			return in_array($this->current['value'], $args, TRUE)
+				|| in_array($this->current['type'], $args, TRUE);
+		} else {
+			return in_array($this->current, $args, TRUE);
+		}
+	}
+
+
+
+	public function reset()
+	{
+		$this->position = 0;
+		$this->current = NULL;
 	}
 
 
@@ -199,24 +263,26 @@ class Tokenizer extends Nette\Object
 	 * @param  int token number
 	 * @return array
 	 */
-	private function scan($wanted, $first, $advance = TRUE, $neg = FALSE)
+	private function scan($wanted, $first, $advance = TRUE, $neg = FALSE, $prev = FALSE)
 	{
 		$res = FALSE;
-		$pos = $this->position;
+		$pos = $this->position + ($prev ? -2 : 0);
 		while (isset($this->tokens[$pos])) {
-			$token = $this->tokens[$pos++];
-			$r = is_array($token) ? $token['type'] : $token;
-			if (!$wanted || in_array($r, $wanted, TRUE) ^ $neg) {
+			$token = $this->tokens[$pos];
+			$pos += $prev ? -1 : 1;
+			$value = is_array($token) ? $token['value'] : $token;
+			$type = is_array($token) ? $token['type'] : $token;
+			if (!$wanted || (in_array($value, $wanted, TRUE) || in_array($type, $wanted, TRUE)) ^ $neg) {
 				if ($advance) {
 					$this->position = $pos;
-					$this->current = $r;
+					$this->current = $token;
 				}
-				$res .= is_array($token) ? $token['value'] : $token;
+				$res .= $value;
 				if ($first) {
 					break;
 				}
 
-			} elseif (!in_array($r, $this->ignored, TRUE)) {
+			} elseif ($neg || !in_array($type, $this->ignored, TRUE)) {
 				break;
 			}
 		}
@@ -229,7 +295,6 @@ class Tokenizer extends Nette\Object
 
 /**
  * The exception that indicates tokenizer error.
- * @internal
  */
 class TokenizerException extends \Exception
 {

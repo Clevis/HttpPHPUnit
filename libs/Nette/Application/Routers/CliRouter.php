@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,6 +20,8 @@ use Nette,
  * The unidirectional router for CLI. (experimental)
  *
  * @author     David Grudl
+ *
+ * @property-read array $defaults
  */
 class CliRouter extends Nette\Object implements Application\IRouter
 {
@@ -42,7 +44,6 @@ class CliRouter extends Nette\Object implements Application\IRouter
 
 	/**
 	 * Maps command line arguments to a Request object.
-	 * @param  Nette\Http\IRequest
 	 * @return Nette\Application\Request|NULL
 	 */
 	public function match(Nette\Http\IRequest $httpRequest)
@@ -104,8 +105,6 @@ class CliRouter extends Nette\Object implements Application\IRouter
 
 	/**
 	 * This router is only unidirectional.
-	 * @param  Nette\Application\Request
-	 * @param  Nette\Http\Url
 	 * @return NULL
 	 */
 	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)

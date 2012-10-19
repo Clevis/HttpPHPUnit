@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -35,6 +35,17 @@ class MemoryStorage extends Nette\Object implements Nette\Caching\IStorage
 	public function read($key)
 	{
 		return isset($this->data[$key]) ? $this->data[$key] : NULL;
+	}
+
+
+
+	/**
+	 * Prevents item reading and writing. Lock is released by write() or remove().
+	 * @param  string key
+	 * @return void
+	 */
+	public function lock($key)
+	{
 	}
 
 

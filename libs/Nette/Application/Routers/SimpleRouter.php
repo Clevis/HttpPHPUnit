@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,6 +20,9 @@ use Nette,
  * The bidirectional route for trivial routing via query parameters.
  *
  * @author     David Grudl
+ *
+ * @property-read array $defaults
+ * @property-read int $flags
  */
 class SimpleRouter extends Nette\Object implements Application\IRouter
 {
@@ -67,7 +70,6 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 
 	/**
 	 * Maps HTTP request to a Request object.
-	 * @param  Nette\Http\IRequest
 	 * @return Nette\Application\Request|NULL
 	 */
 	public function match(Nette\Http\IRequest $httpRequest)
@@ -100,13 +102,14 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 
 	/**
 	 * Constructs absolute URL from Request object.
-	 * @param  Nette\Application\Request
-	 * @param  Nette\Http\Url
 	 * @return string|NULL
 	 */
 	public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
 	{
-		$params = $appRequest->getParams();
+		if ($this->flags & self::ONE_WAY) {
+			return NULL;
+		}
+		$params = $appRequest->getParameters();
 
 		// presenter name
 		$presenter = $appRequest->getPresenterName();
@@ -141,6 +144,17 @@ class SimpleRouter extends Nette\Object implements Application\IRouter
 	public function getDefaults()
 	{
 		return $this->defaults;
+	}
+
+
+
+	/**
+	 * Returns flags.
+	 * @return int
+	 */
+	public function getFlags()
+	{
+		return $this->flags;
 	}
 
 }

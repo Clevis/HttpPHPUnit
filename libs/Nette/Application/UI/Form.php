@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -54,7 +54,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	/**
 	 * This method will be called when the component (or component's parent)
 	 * becomes attached to a monitored object. Do not call this method yourself.
-	 * @param  Nette\Application\IComponent
+	 * @param  Nette\ComponentModel\IComponent
 	 * @return void
 	 */
 	protected function attached($presenter)
@@ -75,7 +75,9 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 			// fill-in the form with HTTP data
 			if ($this->isSubmitted()) {
 				foreach ($this->getControls() as $control) {
-					$control->loadHttpData();
+					if (!$control->isDisabled()) {
+						$control->loadHttpData();
+					}
 				}
 			}
 		}
@@ -115,7 +117,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 		if ($isPost) {
 			return Nette\Utils\Arrays::mergeTree($request->getPost(), $request->getFiles());
 		} else {
-			return $request->getParams();
+			return $request->getParameters();
 		}
 	}
 
@@ -133,7 +135,9 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
 	public function signalReceived($signal)
 	{
 		if ($signal === 'submit') {
-			$this->fireEvents();
+			if (!$this->getPresenter()->getRequest()->hasFlag(Nette\Application\Request::RESTORED)) {
+				$this->fireEvents();
+			}
 		} else {
 			$class = get_class($this);
 			throw new BadSignalException("Missing handler for signal '$signal' in $class.");

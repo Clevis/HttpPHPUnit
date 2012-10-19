@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -21,13 +21,15 @@ use Nette;
  * @author     David Grudl
  *
  * @property-read string $name
+ * @property-read string $sanitizedName
  * @property-read string $contentType
  * @property-read int $size
  * @property-read string $temporaryFile
- * @property-read Nette\Image $image
  * @property-read int $error
- * @property-read array $imageSize
  * @property-read bool $ok
+ * @property-read bool $image
+ * @property-read array $imageSize
+ * @property-read string $contents
  */
 class FileUpload extends Nette\Object
 {
@@ -71,6 +73,17 @@ class FileUpload extends Nette\Object
 	public function getName()
 	{
 		return $this->name;
+	}
+
+
+
+	/**
+	 * Returns the sanitized file name.
+	 * @return string
+	 */
+	public function getSanitizedName()
+	{
+		return trim(Nette\Utils\Strings::webalize($this->name, '.', FALSE), '.-');
 	}
 
 
@@ -151,15 +164,11 @@ class FileUpload extends Nette\Object
 	 */
 	public function move($dest)
 	{
-		$dir = dirname($dest);
-		if (@mkdir($dir, 0755, TRUE)) { // @ - $dir may already exist
-			chmod($dir, 0755);
-		}
-		$func = is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename';
-		if (!$func($this->tmpName, $dest)) {
+		@mkdir(dirname($dest), 0777, TRUE); // @ - dir may already exist
+		if (!call_user_func(is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename', $this->tmpName, $dest)) {
 			throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
 		}
-		chmod($dest, 0644);
+		chmod($dest, 0666);
 		$this->tmpName = $dest;
 		return $this;
 	}

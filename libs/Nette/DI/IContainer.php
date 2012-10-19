@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -16,15 +16,13 @@ use Nette;
 
 
 /**
- * The dependency injection container.
- *
- * @author     David Grudl
+ * @deprecated
  */
 interface IContainer
 {
 
 	/**
-	 * Adds the specified service or service factory to the container.
+	 * Adds the service to the container.
 	 * @param  string
 	 * @param  mixed  object, class name or callback
 	 * @return void
@@ -32,21 +30,21 @@ interface IContainer
 	function addService($name, $service);
 
 	/**
-	 * Gets the service object of the specified type.
+	 * Gets the service object.
 	 * @param  string
 	 * @return mixed
 	 */
 	function getService($name);
 
 	/**
-	 * Removes the specified service type from the container.
+	 * Removes the service from the container.
 	 * @param  string
 	 * @return void
 	 */
 	function removeService($name);
 
 	/**
-	 * Exists the service?
+	 * Does the service exist?
 	 * @return bool
 	 */
 	function hasService($name);

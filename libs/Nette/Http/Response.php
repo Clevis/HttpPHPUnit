@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -21,8 +21,8 @@ use Nette;
  * @author     David Grudl
  *
  * @property   int $code
+ * @property-read bool $sent
  * @property-read array $headers
- * @property-read mixed $sent
  */
 final class Response extends Nette\Object implements IResponse
 {
@@ -60,7 +60,7 @@ final class Response extends Nette\Object implements IResponse
 		static $allowed = array(
 			200=>1, 201=>1, 202=>1, 203=>1, 204=>1, 205=>1, 206=>1,
 			300=>1, 301=>1, 302=>1, 303=>1, 304=>1, 307=>1,
-			400=>1, 401=>1, 403=>1, 404=>1, 406=>1, 408=>1, 410=>1, 412=>1, 415=>1, 416=>1,
+			400=>1, 401=>1, 403=>1, 404=>1, 405=>1, 406=>1, 408=>1, 410=>1, 412=>1, 415=>1, 416=>1,
 			500=>1, 501=>1, 503=>1, 505=>1
 		);
 
@@ -106,6 +106,8 @@ final class Response extends Nette\Object implements IResponse
 
 		if ($value === NULL && function_exists('header_remove')) {
 			header_remove($name);
+		} elseif (strcasecmp($name, 'Content-Length') === 0 && ini_get('zlib.output_compression')) {
+			// ignore, PHP bug #44164
 		} else {
 			header($name . ': ' . $value, TRUE, $this->code);
 		}
@@ -118,7 +120,7 @@ final class Response extends Nette\Object implements IResponse
 	 * Adds HTTP header.
 	 * @param  string  header name
 	 * @param  string  header value
-	 * @return void
+	 * @return Response  provides a fluent interface
 	 * @throws Nette\InvalidStateException  if HTTP headers have been sent
 	 */
 	public function addHeader($name, $value)
@@ -128,6 +130,7 @@ final class Response extends Nette\Object implements IResponse
 		}
 
 		header($name . ': ' . $value, FALSE, $this->code);
+		return $this;
 	}
 
 
@@ -296,6 +299,26 @@ final class Response extends Nette\Object implements IResponse
 			$secure === NULL ? $this->cookieSecure : (bool) $secure,
 			$httpOnly === NULL ? $this->cookieHttpOnly : (bool) $httpOnly
 		);
+
+		if (ini_get('suhosin.cookie.encrypt')) {
+			return $this;
+		}
+
+		$flatten = array();
+		foreach (headers_list() as $header) {
+			if (preg_match('#^Set-Cookie: .+?=#', $header, $m)) {
+				$flatten[$m[0]] = $header;
+				if (PHP_VERSION_ID < 50300) { // multiple deleting due PHP bug #61605
+					header('Set-Cookie:');
+				} else {
+					header_remove('Set-Cookie');
+				}
+			}
+		}
+		foreach (array_values($flatten) as $key => $header) {
+			header($header, $key === 0);
+		}
+
 		return $this;
 	}
 
@@ -312,19 +335,7 @@ final class Response extends Nette\Object implements IResponse
 	 */
 	public function deleteCookie($name, $path = NULL, $domain = NULL, $secure = NULL)
 	{
-		if (headers_sent($file, $line)) {
-			throw new Nette\InvalidStateException("Cannot delete cookie after HTTP headers have been sent" . ($file ? " (output started at $file:$line)." : "."));
-		}
-
-		setcookie(
-			$name,
-			FALSE,
-			254400000,
-			$path === NULL ? $this->cookiePath : (string) $path,
-			$domain === NULL ? $this->cookieDomain : (string) $domain,
-			$secure === NULL ? $this->cookieSecure : (bool) $secure,
-			TRUE // doesn't matter with delete
-		);
+		$this->setCookie($name, FALSE, 0, $path, $domain, $secure);
 	}
 
 }

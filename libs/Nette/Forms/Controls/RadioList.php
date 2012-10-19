@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -147,7 +147,7 @@ class RadioList extends BaseControl
 
 		foreach ($this->items as $k => $val) {
 			$counter++;
-			if ($key !== NULL && $key != $k) { // intentionally ==
+			if ($key !== NULL && (string) $key !== (string) $k) {
 				continue;
 			}
 
@@ -162,7 +162,7 @@ class RadioList extends BaseControl
 			}
 
 			if ($key !== NULL) {
-				return (string) $control . (string) $label;
+				return Html::el()->add($control)->add($label);
 			}
 
 			$container->add((string) $control . (string) $label . $separator);

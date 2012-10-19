@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -44,14 +44,15 @@ class OutputHelper extends Nette\Object
 
 	/**
 	 * Stops and saves the cache.
+	 * @param  array  dependencies
 	 * @return void
 	 */
-	public function end()
+	public function end(array $dp = NULL)
 	{
 		if ($this->cache === NULL) {
 			throw new Nette\InvalidStateException('Output cache has already been saved.');
 		}
-		$this->cache->save($this->key, ob_get_flush(), $this->dependencies);
+		$this->cache->save($this->key, ob_get_flush(), (array) $dp + (array) $this->dependencies);
 		$this->cache = NULL;
 	}
 

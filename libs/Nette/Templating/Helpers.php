@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -19,40 +19,51 @@ use Nette,
 
 
 /**
- * Standard template run-time helpers shipped with Nette Framework (http://nette.org)
+ * Template helpers.
  *
  * @author     David Grudl
  */
-final class DefaultHelpers
+final class Helpers
 {
+	private static $helpers = array(
+		'normalize' => 'Nette\Utils\Strings::normalize',
+		'toascii' => 'Nette\Utils\Strings::toAscii',
+		'webalize' => 'Nette\Utils\Strings::webalize',
+		'truncate' => 'Nette\Utils\Strings::truncate',
+		'lower' => 'Nette\Utils\Strings::lower',
+		'upper' => 'Nette\Utils\Strings::upper',
+		'firstupper' => 'Nette\Utils\Strings::firstUpper',
+		'capitalize' => 'Nette\Utils\Strings::capitalize',
+		'trim' => 'Nette\Utils\Strings::trim',
+		'padleft' => 'Nette\Utils\Strings::padLeft',
+		'padright' => 'Nette\Utils\Strings::padRight',
+		'reverse' =>  'Nette\Utils\Strings::reverse',
+		'replacere' => 'Nette\Utils\Strings::replace',
+		'url' => 'rawurlencode',
+		'striptags' => 'strip_tags',
+		'nl2br' => 'nl2br',
+		'substr' => 'Nette\Utils\Strings::substring',
+		'repeat' => 'str_repeat',
+		'implode' => 'implode',
+		'number' => 'number_format',
+	);
 
 	/** @var string default date format */
 	public static $dateFormat = '%x';
-
-	/**
-	 * Static class - cannot be instantiated.
-	 */
-	final public function __construct()
-	{
-		throw new Nette\StaticClassException;
-	}
 
 
 
 	/**
 	 * Try to load the requested helper.
 	 * @param  string  helper name
-	 * @return callback
+	 * @return callable
 	 */
 	public static function loader($helper)
 	{
-		$callback = callback('Nette\Templating\DefaultHelpers', $helper);
-		if ($callback->isCallable()) {
-			return $callback;
-		}
-		$callback = callback('Nette\Utils\Strings', $helper);
-		if ($callback->isCallable()) {
-			return $callback;
+		if (method_exists(__CLASS__, $helper)) {
+			return new Nette\Callback(__CLASS__, $helper);
+		} elseif (isset(self::$helpers[$helper])) {
+			return self::$helpers[$helper];
 		}
 	}
 
@@ -60,23 +71,23 @@ final class DefaultHelpers
 
 	/**
 	 * Escapes string for use inside HTML template.
-	 * @param  mixed  UTF-8 encoding or 8-bit
-	 * @param  string optional attribute quotes
+	 * @param  mixed  UTF-8 encoding
+	 * @param  int    optional attribute quotes
 	 * @return string
 	 */
-	public static function escapeHtml($s, $quotes = NULL)
+	public static function escapeHtml($s, $quotes = ENT_QUOTES)
 	{
 		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			return $s->__toString(TRUE);
 		}
-		return htmlSpecialChars($s, $quotes === '' ? ENT_NOQUOTES : ($quotes === '"' ? ENT_COMPAT : ENT_QUOTES));
+		return htmlSpecialChars($s, $quotes);
 	}
 
 
 
 	/**
 	 * Escapes string for use inside HTML comments.
-	 * @param  mixed  UTF-8 encoding or 8-bit
+	 * @param  string  UTF-8 encoding
 	 * @return string
 	 */
 	public static function escapeHtmlComment($s)
@@ -89,7 +100,7 @@ final class DefaultHelpers
 
 	/**
 	 * Escapes string for use inside XML 1.0 template.
-	 * @param  string UTF-8 encoding or 8-bit
+	 * @param  string UTF-8 encoding
 	 * @return string
 	 */
 	public static function escapeXML($s)
@@ -104,25 +115,13 @@ final class DefaultHelpers
 
 	/**
 	 * Escapes string for use inside CSS template.
-	 * @param  string UTF-8 encoding or 8-bit
+	 * @param  string UTF-8 encoding
 	 * @return string
 	 */
 	public static function escapeCss($s)
 	{
 		// http://www.w3.org/TR/2006/WD-CSS21-20060411/syndata.html#q6
 		return addcslashes($s, "\x00..\x1F!\"#$%&'()*+,./:;<=>?@[\\]^`{|}~");
-	}
-
-
-
-	/**
-	 * Escapes string for use inside HTML style attribute.
-	 * @param  string UTF-8 encoding or 8-bit
-	 * @return string
-	 */
-	public static function escapeHtmlCss($s)
-	{
-		return htmlSpecialChars(self::escapeCss($s), ENT_QUOTES);
 	}
 
 
@@ -143,14 +142,14 @@ final class DefaultHelpers
 
 
 	/**
-	 * Escapes string for use inside HTML JavaScript attribute.
+	 * Escapes string for use inside iCal template.
 	 * @param  mixed  UTF-8 encoding
-	 * @param  string attribute quotes
 	 * @return string
 	 */
-	public static function escapeHtmlJs($s, $quotes = NULL)
+	public static function escapeICal($s)
 	{
-		return htmlSpecialChars(self::escapeJs($s), $quotes === '"' ? ENT_COMPAT : ENT_QUOTES);
+		// http://www.ietf.org/rfc/rfc5545.txt
+		return addcslashes(preg_replace('#[\x00-\x08\x0B\x0C-\x1F]+#', '', $s), "\";\\,:\n");
 	}
 
 
@@ -210,9 +209,9 @@ final class DefaultHelpers
 		}
 
 		$time = Nette\DateTime::from($time);
-		return strpos($format, '%') === FALSE
-			? $time->format($format) // formats using date()
-			: strftime($format, $time->format('U')); // formats according to locales
+		return Strings::contains($format, '%')
+			? strftime($format, $time->format('U')) // formats according to locales
+			: $time->format($format); // formats using date()
 	}
 
 
@@ -273,7 +272,7 @@ final class DefaultHelpers
 	public static function dataStream($data, $type = NULL)
 	{
 		if ($type === NULL) {
-			$type = Nette\Utils\MimeTypeDetector::fromString($data, NULL);
+			$type = Nette\Utils\MimeTypeDetector::fromString($data);
 		}
 		return 'data:' . ($type ? "$type;" : '') . 'base64,' . base64_encode($data);
 	}
@@ -288,6 +287,77 @@ final class DefaultHelpers
 	public static function null($value)
 	{
 		return '';
+	}
+
+
+
+	/********************* Template tools ****************d*g**/
+
+
+
+	/**
+	 * Removes unnecessary blocks of PHP code.
+	 * @param  string
+	 * @return string
+	 */
+	public static function optimizePhp($source, $lineLength = 80, $existenceOfThisParameterSolvesDamnBugInPHP535 = NULL)
+	{
+		$res = $php = '';
+		$lastChar = ';';
+		$tokens = new \ArrayIterator(token_get_all($source));
+		foreach ($tokens as $key => $token) {
+			if (is_array($token)) {
+				if ($token[0] === T_INLINE_HTML) {
+					$lastChar = '';
+					$res .= $token[1];
+
+				} elseif ($token[0] === T_CLOSE_TAG) {
+					$next = isset($tokens[$key + 1]) ? $tokens[$key + 1] : NULL;
+					if (substr($res, -1) !== '<' && preg_match('#^<\?php\s*$#', $php)) {
+						$php = ''; // removes empty (?php ?), but retains ((?php ?)?php
+
+					} elseif (is_array($next) && $next[0] === T_OPEN_TAG) { // remove ?)(?php
+						if (!strspn($lastChar, ';{}:/')) {
+							$php .= $lastChar = ';';
+						}
+						if (substr($next[1], -1) === "\n") {
+							$php .= "\n";
+						}
+						$tokens->next();
+
+					} elseif ($next) {
+						$res .= preg_replace('#;?(\s)*$#', '$1', $php) . $token[1]; // remove last semicolon before ?)
+						if (strlen($res) - strrpos($res, "\n") > $lineLength
+							&& (!is_array($next) || strpos($next[1], "\n") === FALSE)
+						) {
+							$res .= "\n";
+						}
+						$php = '';
+
+					} else { // remove last ?)
+						if (!strspn($lastChar, '};')) {
+							$php .= ';';
+						}
+					}
+
+				} elseif ($token[0] === T_ELSE || $token[0] === T_ELSEIF) {
+					if ($tokens[$key + 1] === ':' && $lastChar === '}') {
+						$php .= ';'; // semicolon needed in if(): ... if() ... else:
+					}
+					$lastChar = '';
+					$php .= $token[1];
+
+				} else {
+					if (!in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG))) {
+						$lastChar = '';
+					}
+					$php .= $token[1];
+				}
+			} else {
+				$php .= $lastChar = $token;
+			}
+		}
+		return $res . $php;
 	}
 
 }

@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -16,7 +16,7 @@ use Nette;
 
 
 /**
- * Smarter caching interator.
+ * Smarter caching iterator.
  *
  * @author     David Grudl
  *
@@ -25,6 +25,12 @@ use Nette;
  * @property-read bool $empty
  * @property-read bool $odd
  * @property-read bool $even
+ * @property-read int $counter
+ * @property-read mixed $nextKey
+ * @property-read mixed $nextValue
+ * @property-read $innerIterator
+ * @property   $flags
+ * @property-read $cache
  */
 class CachingIterator extends \CachingIterator implements \Countable
 {

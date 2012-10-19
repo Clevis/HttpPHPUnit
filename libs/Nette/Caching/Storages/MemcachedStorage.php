@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -52,18 +52,37 @@ class MemcachedStorage extends Nette\Object implements Nette\Caching\IStorage
 
 	public function __construct($host = 'localhost', $port = 11211, $prefix = '', IJournal $journal = NULL)
 	{
-		if (!self::isAvailable()) {
+		if (!static::isAvailable()) {
 			throw new Nette\NotSupportedException("PHP extension 'memcache' is not loaded.");
 		}
 
 		$this->prefix = $prefix;
 		$this->journal = $journal;
 		$this->memcache = new \Memcache;
-		Nette\Diagnostics\Debugger::tryError();
-		$this->memcache->connect($host, $port);
-		if (Nette\Diagnostics\Debugger::catchError($e)) {
-			throw new Nette\InvalidStateException('Memcache::connect(): ' . $e->getMessage(), 0, $e);
+		if ($host) {
+			$this->addServer($host, $port);
 		}
+	}
+
+
+
+	public function addServer($host = 'localhost', $port = 11211, $timeout = 1)
+	{
+		Nette\Diagnostics\Debugger::tryError();
+		$this->memcache->addServer($host, $port, TRUE, 1, $timeout);
+		if (Nette\Diagnostics\Debugger::catchError($e)) {
+			throw new Nette\InvalidStateException('Memcache::addServer(): ' . $e->getMessage(), 0, $e);
+		}
+	}
+
+
+
+	/**
+	 * @return \Memcache
+	 */
+	public function getConnection()
+	{
+		return $this->memcache;
 	}
 
 
@@ -99,6 +118,17 @@ class MemcachedStorage extends Nette\Object implements Nette\Caching\IStorage
 		}
 
 		return $meta[self::META_DATA];
+	}
+
+
+
+	/**
+	 * Prevents item reading and writing. Lock is released by write() or remove().
+	 * @param  string key
+	 * @return void
+	 */
+	public function lock($key)
+	{
 	}
 
 

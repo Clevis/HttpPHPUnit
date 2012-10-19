@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -27,23 +27,95 @@ use Nette;
  *
  * @author     David Grudl
  *
+ * @method void alphaBlending(bool $on)
+ * @method void antialias(bool $on)
+ * @method void arc($x, $y, $w, $h, $s, $e, $color)
+ * @method void char($font, $x, $y, $char, $color)
+ * @method void charUp($font, $x, $y, $char, $color)
+ * @method int colorAllocate($red, $green, $blue)
+ * @method int colorAllocateAlpha($red, $green, $blue, $alpha)
+ * @method int colorAt($x, $y)
+ * @method int colorClosest($red, $green, $blue)
+ * @method int colorClosestAlpha($red, $green, $blue, $alpha)
+ * @method int colorClosestHWB($red, $green, $blue)
+ * @method void colorDeallocate($color)
+ * @method int colorExact($red, $green, $blue)
+ * @method int colorExactAlpha($red, $green, $blue, $alpha)
+ * @method void colorMatch(Image $image2)
+ * @method int colorResolve($red, $green, $blue)
+ * @method int colorResolveAlpha($red, $green, $blue, $alpha)
+ * @method void colorSet($index, $red, $green, $blue)
+ * @method array colorsForIndex($index)
+ * @method int colorsTotal()
+ * @method int colorTransparent([$color])
+ * @method void convolution(array $matrix, float $div, float $offset)
+ * @method void copy(Image $src, $dstX, $dstY, $srcX, $srcY, $srcW, $srcH)
+ * @method void copyMerge(Image $src, $dstX, $dstY, $srcX, $srcY, $srcW, $srcH, $opacity)
+ * @method void copyMergeGray(Image $src, $dstX, $dstY, $srcX, $srcY, $srcW, $srcH, $opacity)
+ * @method void copyResampled(Image $src, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH)
+ * @method void copyResized(Image $src, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH)
+ * @method void dashedLine($x1, $y1, $x2, $y2, $color)
+ * @method void ellipse($cx, $cy, $w, $h, $color)
+ * @method void fill($x, $y, $color)
+ * @method void filledArc($cx, $cy, $w, $h, $s, $e, $color, $style)
+ * @method void filledEllipse($cx, $cy, $w, $h, $color)
+ * @method void filledPolygon(array $points, $numPoints, $color)
+ * @method void filledRectangle($x1, $y1, $x2, $y2, $color)
+ * @method void fillToBorder($x, $y, $border, $color)
+ * @method void filter($filtertype [, ...])
+ * @method int fontHeight($font)
+ * @method int fontWidth($font)
+ * @method array ftBBox($size, $angle, string $fontFile, string $text [, array $extrainfo])
+ * @method array ftText($size, $angle, $x, $y, $col, string $fontFile, string $text [, array $extrainfo])
+ * @method void gammaCorrect(float $inputgamma, float $outputgamma)
+ * @method int interlace([$interlace])
+ * @method bool isTrueColor()
+ * @method void layerEffect($effect)
+ * @method void line($x1, $y1, $x2, $y2, $color)
+ * @method int loadFont(string $file)
+ * @method void paletteCopy(Image $source)
+ * @method void polygon(array $points, $numPoints, $color)
+ * @method array psBBox(string $text, $font, $size [, $space] [, $tightness] [, float $angle])
+ * @method void psEncodeFont($fontIndex, string $encodingfile)
+ * @method void psExtendFont($fontIndex, float $extend)
+ * @method void psFreeFont($fontindex)
+ * @method resource psLoadFont(string $filename)
+ * @method void psSlantFont($fontIndex, float $slant)
+ * @method array psText(string $text, $font, $size, $color, $backgroundColor, $x, $y [, $space] [, $tightness] [, float $angle] [, $antialiasSteps])
+ * @method void rectangle($x1, $y1, $x2, $y2, $col)
+ * @method Image rotate(float $angle, $backgroundColor)
+ * @method void saveAlpha(bool $saveflag)
+ * @method void setBrush(Image $brush)
+ * @method void setPixel($x, $y, $color)
+ * @method void setStyle(array $style)
+ * @method void setThickness($thickness)
+ * @method void setTile(Image $tile)
+ * @method void string($font, $x, $y, string $s, $col)
+ * @method void stringUp($font, $x, $y, string $s, $col)
+ * @method void trueColorToPalette(bool $dither, $ncolors)
+ * @method array ttfBBox($size, $angle, string $fontfile, string $text)
+ * @method array ttfText($size, $angle, $x, $y, $color, string $fontfile, string $text)
+ * @method int types()
  * @property-read int $width
  * @property-read int $height
  * @property-read resource $imageResource
  */
 class Image extends Object
 {
-	/** {@link resize()} allows enlarging image (it only shrinks images by default) */
-	const ENLARGE = 1;
+	/** {@link resize()} only shrinks images */
+	const SHRINK_ONLY = 1;
 
 	/** {@link resize()} will ignore aspect ratio */
 	const STRETCH = 2;
 
-	/** {@link resize()} fits in given area */
+	/** {@link resize()} fits in given area so its dimensions are less than or equal to the required dimensions */
 	const FIT = 0;
 
-	/** {@link resize()} fills (and even overflows) given area */
+	/** {@link resize()} fills given area so its dimensions are greater than or equal to the required dimensions */
 	const FILL = 4;
+
+	/** {@link resize()} fills given area exactly */
+	const EXACT = 8;
 
 	/** @int image types {@link send()} */
 	const JPEG = IMAGETYPE_JPEG,
@@ -51,6 +123,9 @@ class Image extends Object
 		GIF = IMAGETYPE_GIF;
 
 	const EMPTY_GIF = "GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;";
+
+	/** @deprecated */
+	const ENLARGE = 0;
 
 	/** @var resource */
 	private $image;
@@ -243,10 +318,14 @@ class Image extends Object
 	 */
 	public function resize($width, $height, $flags = self::FIT)
 	{
-		list($newWidth, $newHeight) = self::calculateSize($this->getWidth(), $this->getHeight(), $width, $height, $flags);
+		if ($flags & self::EXACT) {
+			return $this->resize($width, $height, self::FILL)->crop('50%', '50%', $width, $height);
+		}
+
+		list($newWidth, $newHeight) = static::calculateSize($this->getWidth(), $this->getHeight(), $width, $height, $flags);
 
 		if ($newWidth !== $this->getWidth() || $newHeight !== $this->getHeight()) { // resize
-			$newImage = self::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
+			$newImage = static::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
 			imagecopyresampled(
 				$newImage, $this->getImageResource(),
 				0, 0, 0, 0,
@@ -256,7 +335,7 @@ class Image extends Object
 		}
 
 		if ($width < 0 || $height < 0) { // flip is processed in two steps for better quality
-			$newImage = self::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
+			$newImage = static::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
 			imagecopyresampled(
 				$newImage, $this->getImageResource(),
 				0, 0, $width < 0 ? $newWidth - 1 : 0, $height < 0 ? $newHeight - 1 : 0,
@@ -282,7 +361,6 @@ class Image extends Object
 	{
 		if (substr($newWidth, -1) === '%') {
 			$newWidth = round($srcWidth / 100 * abs($newWidth));
-			$flags |= self::ENLARGE;
 			$percents = TRUE;
 		} else {
 			$newWidth = (int) abs($newWidth);
@@ -290,7 +368,7 @@ class Image extends Object
 
 		if (substr($newHeight, -1) === '%') {
 			$newHeight = round($srcHeight / 100 * abs($newHeight));
-			$flags |= empty($percents) ? self::ENLARGE : self::STRETCH;
+			$flags |= empty($percents) ? 0 : self::STRETCH;
 		} else {
 			$newHeight = (int) abs($newHeight);
 		}
@@ -300,7 +378,7 @@ class Image extends Object
 				throw new InvalidArgumentException('For stretching must be both width and height specified.');
 			}
 
-			if (($flags & self::ENLARGE) === 0) {
+			if ($flags & self::SHRINK_ONLY) {
 				$newWidth = round($srcWidth * min(1, $newWidth / $srcWidth));
 				$newHeight = round($srcHeight * min(1, $newHeight / $srcHeight));
 			}
@@ -323,7 +401,7 @@ class Image extends Object
 				$scale = array(max($scale));
 			}
 
-			if (($flags & self::ENLARGE) === 0) {
+			if ($flags & self::SHRINK_ONLY) {
 				$scale[] = 1;
 			}
 
@@ -347,8 +425,8 @@ class Image extends Object
 	 */
 	public function crop($left, $top, $width, $height)
 	{
-		list($left, $top, $width, $height) = self::calculateCutout($this->getWidth(), $this->getHeight(), $left, $top, $width, $height);
-		$newImage = self::fromBlank($width, $height, self::RGB(0, 0, 0, 127))->getImageResource();
+		list($left, $top, $width, $height) = static::calculateCutout($this->getWidth(), $this->getHeight(), $left, $top, $width, $height);
+		$newImage = static::fromBlank($width, $height, self::RGB(0, 0, 0, 127))->getImageResource();
 		imagecopy($newImage, $this->getImageResource(), 0, 0, $left, $top, $width, $height);
 		$this->image = $newImage;
 		return $this;
@@ -514,7 +592,7 @@ class Image extends Object
 			return $this->toString();
 
 		} catch (\Exception $e) {
-			Diagnostics\Debugger::toStringException($e);
+			trigger_error("Exception in " . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
 		}
 	}
 
@@ -575,7 +653,6 @@ class Image extends Object
 
 /**
  * The exception that indicates invalid image file.
- * @internal
  */
 class UnknownImageFileException extends \Exception
 {

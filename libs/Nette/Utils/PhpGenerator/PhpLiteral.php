@@ -3,26 +3,32 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
  */
 
-namespace Nette\DI;
+namespace Nette\Utils\PhpGenerator;
 
 use Nette;
 
 
 
 /**
- * The service creator.
+ * PHP literal value.
  *
  * @author     David Grudl
  */
-interface IServiceBuilder
+class PhpLiteral
 {
+	/** @var string */
+	public $value = '';
 
-	function createService(IContainer $container);
+
+	public function __construct($value)
+	{
+		$this->value = (string) $value;
+	}
 
 }

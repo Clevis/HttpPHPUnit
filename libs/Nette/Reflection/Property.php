@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -20,6 +20,19 @@ use Nette,
  * Reports information about a classes variable.
  *
  * @author     David Grudl
+ * @property-read ClassType $declaringClass
+ * @property-read IAnnotation[][] $annotations
+ * @property-read string $description
+ * @property-read string $name
+ * @property  mixed $value
+ * @property-read bool $public
+ * @property-read bool $private
+ * @property-read bool $protected
+ * @property-read bool $static
+ * @property-read bool $default
+ * @property-read int $modifiers
+ * @property-read string $docComment
+ * @property-write bool $accessible
  */
 class Property extends \ReflectionProperty
 {
@@ -77,7 +90,7 @@ class Property extends \ReflectionProperty
 
 	/**
 	 * Returns all annotations.
-	 * @return array
+	 * @return IAnnotation[][]
 	 */
 	public function getAnnotations()
 	{

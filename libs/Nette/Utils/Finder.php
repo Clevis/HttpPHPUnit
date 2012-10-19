@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -110,8 +110,8 @@ class Finder extends Nette\Object implements \IteratorAggregate
 		$pattern = self::buildPattern($masks);
 		if ($type || $pattern) {
 			$this->filter(function($file) use ($type, $pattern) {
-				return (!$type || $file->$type())
-					&& !$file->isDot()
+				return !$file->isDot()
+					&& (!$type || $file->$type())
 					&& (!$pattern || preg_match($pattern, '/' . strtr($file->getSubPathName(), '\\', '/')));
 			});
 		}
@@ -204,7 +204,7 @@ class Finder extends Nette\Object implements \IteratorAggregate
 
 	/**
 	 * Returns iterator.
-	 * @return Nette\Iterator
+	 * @return \Iterator
 	 */
 	public function getIterator()
 	{
@@ -215,10 +215,12 @@ class Finder extends Nette\Object implements \IteratorAggregate
 			return $this->buildIterator($this->paths[0]);
 
 		} else {
-			$iterator = new \AppendIterator(); // buggy!
+			$iterator = new \AppendIterator();
+			$iterator->append($workaround = new \ArrayIterator(array('workaround PHP bugs #49104, #63077')));
 			foreach ($this->paths as $path) {
 				$iterator->append($this->buildIterator($path));
 			}
+			unset($workaround[0]);
 			return $iterator;
 		}
 	}
@@ -228,7 +230,7 @@ class Finder extends Nette\Object implements \IteratorAggregate
 	/**
 	 * Returns per-path iterator.
 	 * @param  string
-	 * @return Nette\Iterator
+	 * @return \Iterator
 	 */
 	private function buildIterator($path)
 	{
@@ -241,7 +243,7 @@ class Finder extends Nette\Object implements \IteratorAggregate
 		if ($this->exclude) {
 			$filters = $this->exclude;
 			$iterator = new Nette\Iterators\RecursiveFilter($iterator, function($file) use ($filters) {
-				if (!$file->isFile()) {
+				if (!$file->isDot() && !$file->isFile()) {
 					foreach ($filters as $filter) {
 						if (!call_user_func($filter, $file)) {
 							return FALSE;
@@ -305,7 +307,7 @@ class Finder extends Nette\Object implements \IteratorAggregate
 
 	/**
 	 * Restricts the search using callback.
-	 * @param  callback
+	 * @param  callable
 	 * @return Finder  provides a fluent interface
 	 */
 	public function filter($callback)

@@ -3,7 +3,7 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
@@ -23,7 +23,7 @@ use Nette;
  * @author     David Grudl
  *
  * @property-read string $name
- * @property IContainer $parent
+ * @property-read IContainer|NULL $parent
  */
 abstract class Component extends Nette\Object implements IComponent
 {
@@ -233,7 +233,6 @@ abstract class Component extends Nette\Object implements IComponent
 	/**
 	 * Is called by a component when it is about to be set new parent. Descendant can
 	 * override this method to disallow a parent change by throwing an Nette\InvalidStateException
-	 * @param  IContainer
 	 * @return void
 	 * @throws Nette\InvalidStateException
 	 */
@@ -332,11 +331,21 @@ abstract class Component extends Nette\Object implements IComponent
 
 
 	/**
+	 * Prevents serialization.
+	 */
+	final public function __sleep()
+	{
+		throw new Nette\NotImplementedException('Object serialization is not supported by class ' . get_class($this));
+	}
+
+
+
+	/**
 	 * Prevents unserialization.
 	 */
 	final public function __wakeup()
 	{
-		throw new Nette\NotImplementedException;
+		throw new Nette\NotImplementedException('Object unserialization is not supported by class ' . get_class($this));
 	}
 
 }
