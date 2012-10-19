@@ -9,7 +9,7 @@ class Main_arg_Test extends TestCase
 
 	protected function setUp()
 	{
-		$this->h = new HttpPHPUnit\Main(LIBS_DIR . '/PHPUnit');
+		$this->h = new HttpPHPUnit\Main(new HttpPHPUnit\Loaders\IncludePathLoader(LIBS_DIR . '/PHPUnit'));
 	}
 
 	public function test1()

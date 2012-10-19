@@ -46,15 +46,15 @@ class Main extends Object
 	private $onAfter = array();
 
 	/**
-	 * @param string path to PHPUnit
-	 * @throws DirectoryNotFoundException
+	 * @param Loaders\IPHPUnitLoader|NULL|string null means autodetect Loaders\IncludePathLoader; string means directory Loaders\IncludePathLoader 
 	 */
-	public function __construct($phpUnitDir = NULL)
+	public function __construct($loader = NULL)
 	{
-		if (!$phpUnitDir) $phpUnitDir = __DIR__ . '/../../PHPUnit';
-		if (!is_dir($phpUnitDir)) throw new DirectoryNotFoundException($phpUnitDir);
-		set_include_path($phpUnitDir);
-		require_once 'PHPUnit/Autoload.php';
+		if (!($loader instanceof Loaders\IPHPUnitLoader))
+		{
+			$loader = new Loaders\IncludePathLoader($loader);
+		}
+		$loader->load();
 		require_once __DIR__ . '/Command.php';
 		require_once __DIR__ . '/TemplateFactory.php';
 		require_once __DIR__ . '/../ResultPrinter/ResultPrinter.php';
