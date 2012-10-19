@@ -19,6 +19,7 @@ use HttpPHPUnit\Runner;
  * 	$c = new HttpPHPUnit\Config\Configurator;
  * 	$c->configuration->addArgument('--no-globals-backup --strict');
  * 	$c->configuration->setTestDirectory(__DIR__ . '/cases');
+ * 	$c->registerModule('coverage', new HttpPHPUnit\Modules\Coverage\Coverage(__DIR__ . '/../app', __DIR__ . '/coverage'));
  * 	$c->createApplication()->run();
  *
  * </code>
@@ -33,6 +34,9 @@ class Configurator extends Object
 	/** @var Config\Configuration */
 	private $configuration;
 
+	/** @var array moduleName => object */
+	private $modules = array();
+
 	/** @var Events */
 	private $events = array();
 
@@ -40,6 +44,23 @@ class Configurator extends Object
 	{
 		$this->configuration = $this->createConfiguration();
 		$this->events = $this->createEvents();
+	}
+
+	/**
+	 * Register Modules\IModule.
+	 * @param string
+	 * @param Modules\IModule
+	 * @return Configurator
+	 */
+	public function registerModule($name, Modules\IModule $module)
+	{
+		if (isset($this->modules[$name]))
+		{
+			throw new \Exception;
+		}
+		$this->modules[$name] = $module;
+		$module->register($this->events->createModuleEvents($name));
+		return $this;
 	}
 
 	/** @return Config\Configuration */
