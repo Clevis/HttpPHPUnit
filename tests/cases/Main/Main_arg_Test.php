@@ -15,55 +15,55 @@ class Main_arg_Test extends TestCase
 	public function test1()
 	{
 		$this->h->arg('aaa bbb');
-		$this->assertAttributeSame(array('aaa', 'bbb'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'bbb'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test2()
 	{
 		$this->h->arg('"aaa" "bbb"');
-		$this->assertAttributeSame(array('aaa', 'bbb'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'bbb'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test3()
 	{
 		$this->h->arg("'aaa' 'bbb'");
-		$this->assertAttributeSame(array('aaa', 'bbb'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'bbb'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test4()
 	{
 		$this->h->arg('"aaa" \'bbb\' ccc');
-		$this->assertAttributeSame(array('aaa', 'bbb', 'ccc'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'bbb', 'ccc'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test5()
 	{
 		$this->h->arg('aaa \'bbb\' "ccc"');
-		$this->assertAttributeSame(array('aaa', 'bbb', 'ccc'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'bbb', 'ccc'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test6()
 	{
 		$this->h->arg('"a aa" \'b bb\' ccc');
-		$this->assertAttributeSame(array('a aa', 'b bb', 'ccc'), 'arg', $this->h);
+		$this->assertSame(array('a aa', 'b bb', 'ccc'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test7()
 	{
 		$this->h->arg('aaa \'b bb\' "c cc"');
-		$this->assertAttributeSame(array('aaa', 'b bb', 'c cc'), 'arg', $this->h);
+		$this->assertSame(array('aaa', 'b bb', 'c cc'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test8()
 	{
 		$this->h->arg('"ss');
-		$this->assertAttributeSame(array('"ss'), 'arg', $this->h);
+		$this->assertSame(array('"ss'), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function test9()
 	{
 		$this->h->arg('asdas "A\' "\'sdaSD"as ASD" "\'sdaSDas ASD" aS D"as\'d "s\'d;" \'a\'sd\' a\'sd;a\'"sd;\'as; "g"g"');
-		$this->assertAttributeSame(array(
+		$this->assertSame(array(
 			'asdas',
 			'"A\'',
 			'"\'sdaSD"as',
@@ -75,7 +75,7 @@ class Main_arg_Test extends TestCase
 			'\'a\'sd\'',
 			'a\'sd;a\'"sd;\'as;',
 			'"g"g"',
-		), 'arg', $this->h);
+		), $this->h->configurator->configuration->getArguments());
 	}
 
 	public function testEmpty()
