@@ -32,4 +32,14 @@ class Information extends Object
 		return false;
 	}
 
+	/** @return bool */
+	public function isFiltered()
+	{
+		if ($this->configuration->getFilterDirectory() OR $this->configuration->getFilterMethod())
+		{
+			return true;
+		}
+		return false;
+	}
+
 }

@@ -3,6 +3,7 @@
 namespace HttpPHPUnit\Modules\Coverage;
 
 use HttpPHPUnit\Nette\Object;
+use HttpPHPUnit\Nette\Utils\Html;
 use HttpPHPUnit\Nette\Utils\Finder;
 use HttpPHPUnit\Modules;
 use HttpPHPUnit\Events;
@@ -49,6 +50,16 @@ class Coverage extends Object implements Modules\IModule
 		$coverageDir = $this->coverageDir;
 		$events->onStart(function (Config\Information $info, Config\Configuration $configuration) use ($events, $_this, $coverageDir) {
 
+			if (!$info->isFiltered() AND extension_loaded('xdebug'))
+			{
+				$events->onRendererWaitingEnd(function (Config\Link $link) use ($_this, $coverageDir) {
+					$_this->renderCoverageLink($link, $coverageDir);
+				});
+				$events->onRendererRunnerEnd(function (Config\Link $link) use ($_this, $coverageDir) {
+					$_this->renderCoverageLink($link, $coverageDir);
+				});
+			}
+
 			if ($info->isRunnedAllTest())
 			{
 				if (!extension_loaded('xdebug'))
@@ -69,8 +80,6 @@ class Coverage extends Object implements Modules\IModule
 						$lastModify[$file] = filemtime($file);
 					}
 					$events->onRendererRunnerEnd(function (Config\Link $link) use ($coverageDir, & $lastModify) {
-						$d = $link->getLinkToFile($coverageDir);
-						echo "<a href='$d'>coverage</a>";
 						foreach (Finder::findFiles('*.html')->from($coverageDir) as $file)
 						{
 							$file = (string) $file;
@@ -84,6 +93,17 @@ class Coverage extends Object implements Modules\IModule
 			}
 
 		});
+	}
+
+	/**
+	 * @param Config\Link
+	 * @param string
+	 * @access protected
+	 */
+	public function renderCoverageLink(Config\Link $link, $coverageDir)
+	{
+		$d = $link->getLinkToFile($coverageDir);
+		echo Html::el('a', 'Open coverage report.')->href($d);
 	}
 
 	/**
