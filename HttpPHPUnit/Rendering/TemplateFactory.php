@@ -2,9 +2,9 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Object;
-use Nette\Templating\FileTemplate;
-use Nette\Latte\Engine;
+use HttpPHPUnit\Nette\Object;
+use HttpPHPUnit\Nette\Templating\FileTemplate;
+use HttpPHPUnit\Nette\Latte\Engine;
 use Exception;
 
 /**
@@ -18,7 +18,7 @@ class TemplateFactory extends Object
 		$template->onPrepareFilters[] = function ($template) {
 			$template->registerFilter(new Engine);
 		};
-		$template->registerHelperLoader('Nette\Templating\Helpers::loader');
+		$template->registerHelperLoader('HttpPHPUnit\Nette\Templating\Helpers::loader');
 		$template->setFile($file);
 		$template->basePath = self::getBasePath();
 		return $template;

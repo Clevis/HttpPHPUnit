@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Loaders;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use Exception;
 
 /**

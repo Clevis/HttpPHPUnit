@@ -2,8 +2,8 @@
 
 namespace HttpPHPUnit\Modules\Coverage;
 
-use Nette\Object;
-use Nette\Utils\Finder;
+use HttpPHPUnit\Nette\Object;
+use HttpPHPUnit\Nette\Utils\Finder;
 use HttpPHPUnit\Modules;
 use HttpPHPUnit\Events;
 use HttpPHPUnit\Config;

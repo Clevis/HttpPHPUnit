@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Utils\Html;
+use HttpPHPUnit\Nette\Utils\Html;
 use HttpPHPUnit\Config;
 use HttpPHPUnit\Events;
 use PHPUnit_Util_TestDox_ResultPrinter;

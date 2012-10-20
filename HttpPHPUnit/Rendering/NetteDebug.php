@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use Exception;
 use ReflectionProperty;
 
@@ -37,6 +37,7 @@ class NetteDebug extends Object
 			'Debug',
 			'NDebugger',
 			'NDebug',
+			'HttpPHPUnit\Nette\Diagnostics\Debugger',
 		) as $class)
 		{
 			if (class_exists($class))

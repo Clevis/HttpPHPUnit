@@ -2,8 +2,8 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Object;
-use Nette\Utils\Html;
+use HttpPHPUnit\Nette\Object;
+use HttpPHPUnit\Nette\Utils\Html;
 use HttpPHPUnit\Config;
 use HttpPHPUnit\Events;
 use HttpPHPUnit\Runner;

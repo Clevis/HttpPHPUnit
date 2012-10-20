@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use PHP_CodeCoverage;
 use Exception;
 

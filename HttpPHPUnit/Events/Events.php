@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Events;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 
 
 /**

@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 
 /**
  * @author Petr Prochazka

@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Config;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use HttpPHPUnit\Config;
 
 

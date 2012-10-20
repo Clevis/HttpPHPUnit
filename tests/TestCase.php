@@ -1,6 +1,7 @@
 <?php
 
-use Nette\ObjectMixin;
+use HttpPHPUnit\Nette\ObjectMixin;
+
 
 abstract class TestCase extends PHPUnit_Framework_TestCase
 {

@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Runner;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use HttpPHPUnit\Rendering;
 use HttpPHPUnit\Config;
 use HttpPHPUnit\Events;

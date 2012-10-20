@@ -2,8 +2,9 @@
 
 namespace HttpPHPUnit\Rendering;
 
-use Nette\Object;
-use Nette\Utils\Finder;
+use HttpPHPUnit\Nette\Object;
+use HttpPHPUnit\Nette\Utils\Finder;
+use HttpPHPUnit\Nette\Templating\FileTemplate;
 use HttpPHPUnit\Config;
 
 
@@ -22,7 +23,7 @@ class StructureRenderer extends Object
 	/** @var NULL|string */
 	private $filterMethod = NULL;
 
-	/** @var Nette\Templating\FileTemplate */
+	/** @var FileTemplate */
 	private $template;
 
 	/** @var callable (string|NULL $filterDirectory, string|NULL $filterMethod = NULL) => string */

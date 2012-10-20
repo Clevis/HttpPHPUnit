@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit\Loaders;
 
-use Nette\Object;
+use HttpPHPUnit\Nette\Object;
 use Exception;
 
 /**
@@ -16,7 +16,7 @@ use Exception;
  * @author Petr Prochazka
  * Based on Nette Framework (c) David Grudl (http://davidgrudl.com)
  */
-class AutoLoader extends Object
+class AutoLoader/* extends Object*/
 {
 
 	/** @var AutoLoader */
@@ -25,6 +25,7 @@ class AutoLoader extends Object
 	/** @var array expectedPath => actualPath non PSR-0 */
 	protected $list = array(
 		'Main' => 'Runner/Main',
+		'Nette' => 'Nette/nette.min',
 	);
 
 	/**
@@ -75,7 +76,11 @@ class AutoLoader extends Object
 		if (substr($type, 0, 12) === 'HttpPHPUnit\\')
 		{
 			$file = strtr(substr($type, 12), '\\', '/');
-			if (isset($this->list[$file]))
+			if (substr($file, 0, 6) === 'Nette/')
+			{
+				$file = $this->list['Nette'];
+			}
+			else if (isset($this->list[$file]))
 			{
 				$file = $this->list[$file];
 			}
