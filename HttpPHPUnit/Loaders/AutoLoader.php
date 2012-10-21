@@ -73,9 +73,9 @@ class AutoLoader/* extends Object*/
 	{
 		$dir = __DIR__ . '/..';
 		$type = ltrim($type, '\\');
-		if (substr($type, 0, 12) === 'HttpPHPUnit\\')
+		if (($s = substr($type, 0, 12)) === 'HttpPHPUnit\\' OR $s === 'HttpPHPUnit_')
 		{
-			$file = strtr(substr($type, 12), '\\', '/');
+			$file = strtr(substr($type, 12), '\\_', '//');
 			if (substr($file, 0, 6) === 'Nette/')
 			{
 				$file = $this->list['Nette'];
