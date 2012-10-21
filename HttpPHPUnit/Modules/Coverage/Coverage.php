@@ -8,6 +8,7 @@ use HttpPHPUnit\Nette\Utils\Finder;
 use HttpPHPUnit\Modules;
 use HttpPHPUnit\Events;
 use HttpPHPUnit\Config;
+use HttpPHPUnit\Loaders;
 use PHP_CodeCoverage;
 
 
@@ -48,7 +49,7 @@ class Coverage extends Object implements Modules\IModule
 	{
 		$_this = $this;
 		$coverageDir = $this->coverageDir;
-		$events->onStart(function (Config\Information $info, Config\Configuration $configuration) use ($events, $_this, $coverageDir) {
+		$events->onStart(function (Config\Information $info, Config\Configuration $configuration, Loaders\IPHPUnitLoader $loader) use ($events, $_this, $coverageDir) {
 
 			if (!$info->isFiltered() AND extension_loaded('xdebug'))
 			{
@@ -70,7 +71,7 @@ class Coverage extends Object implements Modules\IModule
 				}
 				else
 				{
-					$coverage = $_this->createPHPUnitCoverage();
+					$coverage = $_this->createPHPUnitCoverage($loader);
 					$configuration->addArgument('--coverage-html ' . $coverageDir);
 
 					$lastModify = array();
@@ -107,12 +108,13 @@ class Coverage extends Object implements Modules\IModule
 	}
 
 	/**
+	 * @param Loaders\IPHPUnitLoader
 	 * @return PHP_CodeCoverage
 	 * @access protected
 	 */
-	public function createPHPUnitCoverage()
+	public function createPHPUnitCoverage(Loaders\IPHPUnitLoader $loader)
 	{
-		require_once 'PHP/CodeCoverage.php';
+		$loader->load('PHP/CodeCoverage.php');
 		$coverage = PHP_CodeCoverage::getInstance();
 		@mkdir($this->coverageDir);
 		if (!is_writable($this->coverageDir))
