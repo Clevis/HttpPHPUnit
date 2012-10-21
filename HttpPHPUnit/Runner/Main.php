@@ -64,12 +64,13 @@ class Main extends Object
 	 * @param string application directory
 	 * @param string coverage report directory
 	 * @param callback (PHP_CodeCoverage $coverage, string $coverageDir, string $appDir)
-	 * @return Main $this
+	 * @return PHP_CodeCoverage Modules\Coverage\LazyObject back compatibility
 	 */
 	public function coverage($appDir, $coverageDir, $setupCoverage = NULL)
 	{
-		$this->configurator->registerModule('coverage', new Modules\Coverage\Coverage($appDir, $coverageDir, $setupCoverage));
-		return $this;
+		$coverage = new Modules\Coverage\Coverage($appDir, $coverageDir, $setupCoverage);
+		$this->configurator->registerModule('coverage', $coverage);
+		return $coverage->createLazyCoverageObject();
 	}
 
 	/**

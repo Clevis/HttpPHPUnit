@@ -29,6 +29,9 @@ class Coverage extends Object implements Modules\IModule
 	/** @var callable (PHP_CodeCoverage $coverage, string $coverageDir, string $appDir) */
 	private $setupCoverage;
 
+	/** @var LazyObject|NULL Lazy PHP_CodeCoverage for back compatibility. */
+	private $lazyCoverageObject;
+
 	/**
 	 * @param string application directory
 	 * @param string coverage report directory
@@ -129,12 +132,28 @@ class Coverage extends Object implements Modules\IModule
 		$appDir = realpath($this->appDir);
 		$coverage->filter()->addDirectoryToWhitelist($appDir);
 
+		if ($this->lazyCoverageObject)
+		{
+			// back compatibility
+			$this->lazyCoverageObject->__apply($coverage);
+			$this->lazyCoverageObject = NULL;
+		}
 		if ($this->setupCoverage)
 		{
 			call_user_func($this->setupCoverage, $coverage, $this->coverageDir, $appDir);
 		}
 
 		return $coverage;
+	}
+
+	/**
+	 * Lazy PHP_CodeCoverage for back compatibility.
+	 * @return PHP_CodeCoverage LazyObject
+	 */
+	public function createLazyCoverageObject()
+	{
+		$this->lazyCoverageObject = new LazyObject('PHP_CodeCoverage is not available yet. Use third parameter in constructor to set coverage setup callback.');
+		return $this->lazyCoverageObject;
 	}
 
 }
