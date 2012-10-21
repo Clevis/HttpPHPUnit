@@ -37,13 +37,9 @@ class Configurator extends Object
 	/** @var array moduleName => object */
 	private $modules = array();
 
-	/** @var Events */
-	private $events = array();
-
 	public function __construct()
 	{
 		$this->configuration = $this->createConfiguration();
-		$this->events = $this->createEvents();
 	}
 
 	/**
@@ -59,7 +55,6 @@ class Configurator extends Object
 			throw new \Exception;
 		}
 		$this->modules[$name] = $module;
-		$module->register($this->events->createModuleEvents($name));
 		return $this;
 	}
 
@@ -72,9 +67,12 @@ class Configurator extends Object
 	/** @return Runner\Application Ready to run. */
 	public function createApplication()
 	{
-		$events = $this->events;
-		$this->events = clone $events;
 		$configuration = clone $this->configuration;
+		$events = $this->createEvents();
+		foreach ($this->modules as $moduleName => $module)
+		{
+			$module->register($events->createModuleEvents($moduleName));
+		}
 		$link = $this->createLink();
 		$link->applyConfiguration($configuration);
 		$info = $this->createInformation($configuration);
