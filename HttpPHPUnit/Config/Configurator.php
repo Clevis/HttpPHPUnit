@@ -8,6 +8,7 @@ use HttpPHPUnit\Events;
 use HttpPHPUnit\Config;
 use HttpPHPUnit\Rendering;
 use HttpPHPUnit\Runner;
+use HttpPHPUnit\Loaders;
 
 
 /**
@@ -37,8 +38,19 @@ class Configurator extends Object
 	/** @var array moduleName => object */
 	private $modules = array();
 
-	public function __construct()
+	/**
+	 * @param Loaders\IPHPUnitLoader|NULL|string|false
+	 * 	null = autodetect Loaders\IncludePathLoader
+	 * 	string = directory Loaders\IncludePathLoader
+	 * 	false = disable include path modification
+	 */
+	public function __construct($loader = NULL)
 	{
+		if (!($loader instanceof Loaders\IPHPUnitLoader))
+		{
+			$loader = new Loaders\IncludePathLoader($loader);
+		}
+		$loader->load('PHPUnit/Autoload.php');
 		$this->configuration = $this->createConfiguration();
 	}
 

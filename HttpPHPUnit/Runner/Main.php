@@ -36,13 +36,7 @@ class Main extends Object
 	 */
 	public function __construct($loader = NULL)
 	{
-		if (!($loader instanceof Loaders\IPHPUnitLoader))
-		{
-			$loader = new Loaders\IncludePathLoader($loader);
-		}
-		$loader->load();
-
-		$this->configurator = new Config\Configurator;
+		$this->configurator = new Config\Configurator($loader);
 	}
 
 	/**
