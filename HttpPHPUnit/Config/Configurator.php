@@ -35,6 +35,9 @@ class Configurator extends Object
 	/** @var Config\Configuration */
 	private $configuration;
 
+	/** @var Loaders\IPHPUnitLoader */
+	private $loader;
+
 	/** @var array moduleName => object */
 	private $modules = array();
 
@@ -51,6 +54,7 @@ class Configurator extends Object
 			$loader = new Loaders\IncludePathLoader($loader);
 		}
 		$loader->load('PHPUnit/Autoload.php');
+		$this->loader = $loader;
 		$this->configuration = $this->createConfiguration();
 	}
 
@@ -92,6 +96,7 @@ class Configurator extends Object
 		$renderer = $this->createRenderer($configuration, $events, $runner, $link);
 
 		$events->getAutowiring()
+			->addObject($this->loader)
 			->addObject($configuration)
 			->addObject($link)
 			->addObject($info)

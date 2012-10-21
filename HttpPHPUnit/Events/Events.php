@@ -102,6 +102,7 @@ class Events extends Object
 			'HttpPHPUnit\Config\Information',
 			'HttpPHPUnit\Config\Configuration',
 			'HttpPHPUnit\Config\Link',
+			'HttpPHPUnit\Loaders\IPHPUnitLoader',
 		);
 		$this->autowiring = new Autowiring;
 
