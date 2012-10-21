@@ -49,51 +49,20 @@ class IncludePathLoader extends Object implements IPHPUnitLoader
 		$this->phpUnitDir = $phpUnitDir;
 	}
 
-	/** Load PHPUnit */
-	public function load()
+	/**
+	 * Load PHPUnit file.
+	 * @param string path
+	 */
+	public function load($file = 'PHPUnit/Autoload.php')
 	{
-		$include = NULL;
-		$setIncludePath = NULL;
 		if ($this->phpUnitDir === NULL)
 		{
-			$existsResolveFunction = function_exists('stream_resolve_include_path');
-			if (!$existsResolveFunction AND @fopen('PHPUnit/Autoload.php', 'r', true)) // PHP < 5.3.2
-			{
-				// already in include path
-				$include = 'PHPUnit/Autoload.php';
-				$setIncludePath = false;
-			}
-			else if ($existsResolveFunction AND ($file = stream_resolve_include_path('PHPUnit/Autoload.php')) !== false)
-			{
-				// already in include path
-				$include = $file;
-				$setIncludePath = false;
-			}
-			else
-			{
-				$dir = __DIR__ . '/../..';
-				if (($dir = realpath($dir)) === false)
-				{
-					$dir = __DIR__ . '/../..';
-				}
-				$dir .= '/PHPUnit';
-				$file = $dir . '/PHPUnit/Autoload.php';
-				if (is_dir($dir) AND file_exists($file))
-				{
-					// detect PHPUnit; probaly in libs directory
-					$include = $file;
-					$setIncludePath = $dir;
-				}
-				else
-				{
-					throw new Exception("Unable autodetect PHPUnit: {$file}");
-				}
-			}
+			list($setIncludePath, $include) = $this->detectPHPUnit($file);
 		}
 		else
 		{
 			$setIncludePath = $this->phpUnitDir;
-			$include = 'PHPUnit/Autoload.php';
+			$include = $file;
 		}
 
 		if ($setIncludePath !== false)
@@ -102,15 +71,60 @@ class IncludePathLoader extends Object implements IPHPUnitLoader
 			{
 				throw new Exception("PHPUnit not found: {$setIncludePath}");
 			}
-			if (!file_exists($setIncludePath . '/PHPUnit/Autoload.php'))
+			if (!file_exists($setIncludePath . '/' . $file))
 			{
-				throw new Exception("PHPUnit not found: {$setIncludePath}/PHPUnit/Autoload.php");
+				throw new Exception("PHPUnit not found: {$setIncludePath}/" . $file);
 			}
 
 			set_include_path($setIncludePath . PATH_SEPARATOR . get_include_path());
 		}
 
 		$this->limitedScopeLoad($include);
+		$this->phpUnitDir = false;
+	}
+
+	/**
+	 * @param string path
+	 * @return array (string|false $setIncludePath, string $include)
+	 */
+	protected function detectPHPUnit($file)
+	{
+		$include = NULL;
+		$setIncludePath = NULL;
+		$existsResolveFunction = function_exists('stream_resolve_include_path');
+		if (!$existsResolveFunction AND @fopen($file, 'r', true)) // PHP < 5.3.2
+		{
+			// already in include path
+			$include = $file;
+			$setIncludePath = false;
+		}
+		else if ($existsResolveFunction AND ($ipFile = stream_resolve_include_path($file)) !== false)
+		{
+			// already in include path
+			$include = $ipFile;
+			$setIncludePath = false;
+		}
+		else
+		{
+			$dir = __DIR__ . '/../..';
+			if (($dir = realpath($dir)) === false)
+			{
+				$dir = __DIR__ . '/../..';
+			}
+			$dir .= '/PHPUnit';
+			$dFile = $dir . '/' . $file;
+			if (is_dir($dir) AND file_exists($dFile))
+			{
+				// detect PHPUnit; probaly in libs directory
+				$include = $dFile;
+				$setIncludePath = $dir;
+			}
+			else
+			{
+				throw new Exception("Unable autodetect PHPUnit: {$dFile}");
+			}
+		}
+		return array($setIncludePath, $include);
 	}
 
 	/**

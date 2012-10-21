@@ -11,7 +11,10 @@ namespace HttpPHPUnit\Loaders;
 interface IPHPUnitLoader
 {
 
-	/** Load PHPUnit */
-	public function load();
+	/**
+	 * Load PHPUnit file.
+	 * @param string path
+	 */
+	public function load($file);
 
 }
