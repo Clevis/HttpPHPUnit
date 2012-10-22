@@ -15,6 +15,6 @@ interface IPHPUnitLoader
 	 * Load PHPUnit file.
 	 * @param string path
 	 */
-	public function load($file);
+	public function load($file = 'PHPUnit/Autoload.php');
 
 }
