@@ -1,0 +1,25 @@
+{
+		"name": "petrp/httpphpunit",
+		"description": "HttpPHPUnit - Tool for running PHPUnit tests in web browser.",
+		"homepage": "https://github.com/PetrP/HttpPHPUnit",
+		"license": "BSD-3-Clause",
+		"authors": [
+			{
+				"name": "Petr Procházka",
+				"email": "prochazkapp@gmail.com",
+				"homepage": "http://petrp.cz"
+			},
+			{
+				"name": "Jan Tvrdík",
+				"homepage": "http://merxes.cz"
+			}
+		],
+		"autoload": {
+			"files": ["HttpPHPUnit/init.php"]
+		},
+		"require": {
+			"php": ">=5.3.0",
+			"phpunit/phpunit": ">=3.5.0",
+			"phpunit/php-code-coverage": ">=1.0.0"
+		}
+}
