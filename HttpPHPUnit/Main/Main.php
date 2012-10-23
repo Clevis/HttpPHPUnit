@@ -2,9 +2,9 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Object;
-use Nette\DirectoryNotFoundException;
-use Nette\Utils\Finder;
+use XNette\Object;
+use XNette\DirectoryNotFoundException;
+use XNette\Utils\Finder;
 use Exception;
 use PHP_CodeCoverage;
 

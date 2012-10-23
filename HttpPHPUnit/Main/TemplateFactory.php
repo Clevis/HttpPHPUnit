@@ -2,7 +2,7 @@
 
 namespace HttpPHPUnit;
 
-use Nette\Application\UI\Control;
+use XNette\Application\UI\Control;
 use Exception;
 
 /**
