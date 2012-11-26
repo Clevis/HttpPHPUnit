@@ -1,8 +1,7 @@
-
 var structure = $('#structure');
-var open = $('#structure .node.open, #structure > ul');
-$('> ul', open.closest('li, #structure')).show();
-open.parents('ul').show();
+var opened = $('#structure .node.open, #structure > ul');
+$('> ul', opened.closest('li, #structure')).show();
+opened.parents('ul').show();
 structure.find('.node').disableTextSelect(); // zabrání označení položky při dvojkliku
 structure.treeview();
 $('img.structure-placeholder', structure).hide();
