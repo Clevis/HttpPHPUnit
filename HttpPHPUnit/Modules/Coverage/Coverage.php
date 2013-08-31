@@ -122,7 +122,7 @@ class Coverage extends Object implements Modules\IModule
 		@mkdir($this->coverageDir);
 		if (!is_writable($this->coverageDir))
 		{
-			throw new \Exception("Report directory is not exist or writable {$this->coverageDir}");
+			throw new \Exception("Report directory does not exist or is not writable {$this->coverageDir}");
 		}
 		if (!is_dir($this->appDir))
 		{
