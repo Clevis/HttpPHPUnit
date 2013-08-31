@@ -118,7 +118,15 @@ class Coverage extends Object implements Modules\IModule
 	public function createPHPUnitCoverage(Loaders\IPHPUnitLoader $loader)
 	{
 		$loader->load('PHP/CodeCoverage.php');
-		$coverage = PHP_CodeCoverage::getInstance();
+		if (method_exists('PHP_CodeCoverage', 'getInstance'))
+		{
+			$coverage = PHP_CodeCoverage::getInstance();
+		}
+		else
+		{
+			$coverage = new PHP_CodeCoverage;
+		}
+
 		@mkdir($this->coverageDir);
 		if (!is_writable($this->coverageDir))
 		{
